@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>test · QQ</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    .header {
+      background: #fff;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header .back { font-size: 22px; color: #555; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+    .header .back:hover { background: #f0f0f0; }
+    .header .info { flex: 1; }
+    .header .info .name { font-size: 16px; font-weight: 700; color: #333; }
+    .header .more { font-size: 20px; color: #666; }
+
+    .chat-area {
+      flex: 1; overflow-y: auto; padding: 16px 14px;
+      background: #f0f0f0; display: flex; flex-direction: column;
+    }
+
+    .message-row {
+      display: flex;
+      margin-bottom: 16px;
+      animation: msgIn 0.3s ease-out;
+      max-width: 100%;
+    }
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message-row.received { justify-content: flex-start; }
+    .message-row.sent { justify-content: flex-end; }
+
+    .msg-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; user-select: none; }
+    .message-row.received .msg-avatar { margin-right: 8px; }
+    .message-row.sent .msg-avatar { margin-left: 8px; order: 1; }
+
+    .date-label { text-align: center; font-size: 12px; color: #b0b0b0; margin: 12px 0; }
+    .date-label span { background: #e8e8e8; padding: 3px 14px; border-radius: 10px; font-size: 11px; }
+
+    .msg-content { display: flex; flex-direction: column; max-width: 80%; }
+    .message-row.sent .msg-content { align-items: flex-end; }
+    .message-row.received .msg-content { align-items: flex-start; }
+
+    .bubble { padding: 10px 16px; border-radius: 16px; font-size: 15px; line-height: 1.6; word-break: break-word; }
+    .message-row.received .bubble { background: #fff; color: #333; border-bottom-left-radius: 4px; }
+    .message-row.sent .bubble { background: #c6e6f7; color: #333; border-bottom-right-radius: 4px; }
+
+    /* 小程序卡片 */
+    .mp-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      width: 220px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: transform 0.15s;
+    }
+    .mp-card:hover { transform: scale(1.02); }
+    .mp-card:active { transform: scale(0.98); }
+    .mp-card .mp-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 14px 6px;
+    }
+    .mp-card .mp-header .mp-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: #2d3436;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .mp-card .mp-header .mp-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+    }
+    .mp-card .mp-cover {
+      padding: 8px 14px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .mp-card .mp-cover .mp-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 20px);
+      grid-template-rows: repeat(3, 20px);
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .mp-card .mp-cover .mp-grid span {
+      background: #dfe6e9;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .mp-card .mp-cover .mp-grid span.mine { background: #ff7675; color: #fff; }
+    .mp-card .mp-cover .mp-grid span.flag { background: #74b9ff; color: #fff; }
+    .mp-card .mp-desc {
+      font-size: 11px;
+      color: #888;
+    }
+    .mp-card .mp-desc .mp-label {
+      font-size: 10px;
+      color: #07C160;
+      font-weight: 600;
+    }
+    .mp-card .mp-footer {
+      padding: 8px 14px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 11px;
+      color: #999;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .message-row.sent .mp-card {
+      background: #fff;
+    }
+
+    .chat-input-bar {
+      background: #fff;
+      border-top: 1px solid #e0e0e0;
+      padding: 10px 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chat-input-bar input {
+      flex: 1; padding: 10px 16px; border: 1px solid #d0d0d0;
+      border-radius: 20px; font-size: 14px; font-family: inherit;
+      outline: none; background: #f8f8f8;
+    }
+    .chat-input-bar input::placeholder { color: #bbb; }
+    .chat-input-bar .send-btn {
+      padding: 8px 22px; background: #ddd; color: #fff;
+      border: none; border-radius: 20px; font-size: 14px;
+      font-family: inherit; cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+    <div class="header">
+      <div class="back" onclick="window.close()">‹</div>
+      <div class="info">
+        <div class="name">test</div>
+      </div>
+      <div class="more">⋯</div>
+    </div>
+
+    <div class="chat-area">
+      <div class="date-label"><span>9月29日</span></div>
+
+      <!-- 我发的小程序卡片 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble" style="padding:0; background:transparent;">
+            <div class="mp-card" id="mpSaolei">
+              <div class="mp-header">
+                <div class="mp-icon">💣</div>
+                <span class="mp-name">扫雷</span>
+              </div>
+              <div class="mp-cover">
+                <div class="mp-grid">
+                  <span></span><span class="mine">💣</span><span></span>
+                  <span class="flag">🚩</span><span></span><span></span>
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="mp-desc">
+                  <div class="mp-label">小程序</div>
+                  <div>经典扫雷小游戏</div>
+                </div>
+              </div>
+              <div class="mp-footer">
+                <span>扫雷</span>
+                <span>点击体验 →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="msg-avatar" style="background:#ddd;"></div>
+      </div>
+
+    </div>
+
+    <div class="chat-input-bar">
+      <input type="text" placeholder="输入消息..." autocomplete="off">
+      <button class="send-btn" disabled>发送</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('mpSaolei').addEventListener('click', function(){
+      window.open('saolei.html', '_blank');
+    });
+  </script>
+</body>
+</html>

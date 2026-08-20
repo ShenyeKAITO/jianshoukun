@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>日记</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'SF Pro Display', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e0f2f1;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #b2dfdb;
+    }
+
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #80cbc4;
+      flex-shrink: 0;
+      background: #e0f2f1;
+    }
+    .status .time { color: #4db6ac; font-weight: 600; }
+
+    /* 日记主体 - 青色背景 */
+    .diary-body {
+      flex: 1;
+      background: linear-gradient(180deg, #e0f2f1 0%, #f5fffe 40%, #ffffff 100%);
+      padding: 24px 22px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .diary-body::-webkit-scrollbar { width: 3px; }
+    .diary-body::-webkit-scrollbar-thumb { background: #b2dfdb; border-radius: 3px; }
+
+    /* 标题 */
+    .diary-header {
+      text-align: center;
+      margin-bottom: 22px;
+      width: 100%;
+    }
+    .diary-date {
+      font-size: 12px;
+      color: #80cbc4;
+      letter-spacing: 2px;
+      font-weight: 500;
+    }
+    .diary-day {
+      font-size: 32px;
+      font-weight: 600;
+      color: #00897b;
+      line-height: 1.3;
+      letter-spacing: 3px;
+    }
+    .diary-divider {
+      width: 50px;
+      height: 3px;
+      background: linear-gradient(90deg, #4db6ac, #80cbc4);
+      margin: 12px auto 0;
+      border-radius: 3px;
+    }
+
+    /* 条目卡片 */
+    .entry {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .entry-time {
+      font-size: 11px;
+      color: #80cbc4;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+      padding-left: 4px;
+    }
+
+    .entry-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 12px rgba(0,150,136,0.08);
+      border: 1px solid #e0f2f1;
+      transition: box-shadow 0.2s;
+    }
+    .entry-card:hover {
+      box-shadow: 0 4px 20px rgba(0,150,136,0.12);
+    }
+
+    .entry-card .entry-text {
+      font-size: 14px;
+      line-height: 1.9;
+      color: #555;
+      white-space: pre-line;
+    }
+
+    /* 链接条目 */
+    .entry-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #f0faf8;
+      border: 1px solid #e0f2f1;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .entry-link:hover { background: #e6f5f2; }
+    .entry-link:active { background: #dcefec; }
+    .entry-link .link-icon { font-size: 18px; flex-shrink: 0; }
+    .entry-link .link-title {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600;
+      color: #00897b;
+    }
+    .entry-link .link-arrow {
+      font-size: 18px;
+      color: #80cbc4;
+      flex-shrink: 0;
+    }
+
+    /* 分隔线 */
+    .day-divider {
+      width: 100%;
+      text-align: center;
+      margin: 8px 0 18px;
+      position: relative;
+    }
+    .day-divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0; right: 0;
+      height: 1px;
+      background: #e0f2f1;
+    }
+    .day-divider span {
+      background: #fff;
+      padding: 0 14px;
+      font-size: 11px;
+      color: #80cbc4;
+      position: relative;
+      z-index: 1;
+      font-weight: 500;
+    }
+
+    /* ===== 锁屏 - 青白风格 ===== */
+    .lock-screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(160deg, #e0f2f1 0%, #f5fffe 60%, #ffffff 100%);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    .lock-screen.hidden { display: none; }
+
+    .lock-icon {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px rgba(0,137,123,0.2);
+    }
+
+    .lock-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #00695c;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+
+    .lock-hint {
+      font-size: 13px;
+      color: #80cbc4;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+
+    /* 点阵 */
+    .pattern-wrap {
+      position: relative;
+      width: 280px;
+      height: 250px;
+      margin-top: 24px;
+    }
+
+    .pattern-dots {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+
+    .p-dot {
+      position: absolute;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2.5px solid #b2dfdb;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      transition: all 0.2s;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 600;
+      color: #80cbc4;
+    }
+    .p-dot::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #b2dfdb;
+      transition: background 0.2s;
+    }
+    .p-dot:hover {
+      border-color: #4db6ac;
+      background: #f5fffe;
+    }
+    .p-dot:hover::after {
+      background: #4db6ac;
+    }
+
+    .p-dot.active {
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      border-color: #00897b;
+      transform: translate(-50%, -50%) scale(1.08);
+      box-shadow: 0 3px 12px rgba(0,137,123,0.3);
+      color: #fff;
+    }
+    .p-dot.active::after {
+      background: rgba(255,255,255,0.7);
+    }
+
+    .pattern-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .lock-btn-row {
+      display: flex;
+      gap: 32px;
+      margin-top: 12px;
+    }
+
+    .lock-btn {
+      padding: 10px 30px;
+      border: none;
+      border-radius: 24px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    .lock-btn.primary {
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      color: #fff;
+      box-shadow: 0 3px 12px rgba(0,137,123,0.2);
+    }
+    .lock-btn.primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 18px rgba(0,137,123,0.3);
+    }
+    .lock-btn.secondary {
+      background: #fff;
+      color: #80cbc4;
+      border: 1.5px solid #e0f2f1;
+    }
+    .lock-btn.secondary:hover {
+      background: #f5fffe;
+      border-color: #b2dfdb;
+    }
+
+    .lock-error {
+      font-size: 12px;
+      color: #e94560;
+      margin-top: 8px;
+      min-height: 18px;
+      font-weight: 500;
+    }
+
+    .lock-tip {
+      position: absolute;
+      bottom: 30px;
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #00695c;
+      letter-spacing: 1.5px;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.6);
+    }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="status">
+    <span class="time">12:15</span>
+    <span>📶 🔋</span>
+  </div>
+
+  <!-- 锁屏 -->
+  <div class="lock-screen" id="lockScreen">
+    <div class="lock-icon">📖</div>
+    <div class="lock-title">日记已加密</div>
+    <div class="pattern-wrap">
+      <canvas class="pattern-canvas" id="patternCanvas" width="280" height="250"></canvas>
+      <div class="pattern-dots" id="patternDots"></div>
+    </div>
+    <div class="lock-error" id="lockError"></div>
+    <div class="lock-btn-row">
+      <button class="lock-btn secondary" id="lockResetBtn">重置</button>
+      <button class="lock-btn primary" id="lockBtn">确认</button>
+    </div>
+    <div class="lock-tip">以12点为起点，顺时针连接正确的点</div>
+  </div>
+
+  <div class="diary-body">
+
+    <!-- 标题 -->
+    <div class="diary-header">
+      <div class="diary-date">2026 年</div>
+      <div class="diary-day">日 记</div>
+      <div class="diary-divider"></div>
+    </div>
+
+    <!-- 第1条 -->
+    <div class="entry">
+      <div class="entry-time">7月7日 周二 · 晴</div>
+      <div class="entry-card">
+        <div class="entry-text">最后去了望月中学，感觉还不错吧，希望一切顺利</div>
+      </div>
+    </div>
+
+    <!-- 第2条 -->
+    <div class="entry">
+      <div class="entry-time">8月8日 周六 · 晴</div>
+      <div class="entry-card">
+        <div class="entry-text">哈哈！发现了一个无敌的软件，外表看上去是计算器，实际上可以创造一个隐藏空间！只要输入"账号+密码="就可以进出隐藏空间。太牛逼了。把我这些不想让人看到的软件全拖隐藏空间这里来</div>
+      </div>
+    </div>
+
+    <!-- 第3条 -->
+    <div class="entry">
+      <div class="entry-time">8月26日 周三 · 晴</div>
+      <div class="entry-card">
+        <div class="entry-link" id="entryLinkPassword">
+          <span class="link-icon">🔗</span>
+          <span class="link-title">剧本杀的常见密码盘点</span>
+          <span class="link-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 第4条 -->
+    <div class="entry">
+      <div class="entry-time">9月26日 周五 · 阴</div>
+      <div class="entry-card">
+        <div class="entry-text">教导主任真的好烦！后排几个同学讲话，结果站在教室门口训了20多分钟话。管得真的太严了，恨不得把所有人都盯死。每次开会还要翻来覆去讲同样的东西，长篇大论没完没了，底下的人都在偷偷看手机。唉，正常一点不行吗。</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var locked = true;
+  // 密码 2384 → 依次点击 2→3→8→4
+  var correct = [1, 2, 7, 3];
+  var selected = [];
+
+  var positions = [
+    {x: 50, y: 25},   {x: 140, y: 25},  {x: 230, y: 25},
+    {x: 50, y: 115},  {x: 140, y: 115}, {x: 230, y: 115},
+    {x: 50, y: 205},  {x: 140, y: 205}, {x: 230, y: 205}
+  ];
+
+  var canvas = document.getElementById('patternCanvas');
+  var ctx = canvas.getContext('2d');
+  var dotsContainer = document.getElementById('patternDots');
+
+  function renderDots() {
+    dotsContainer.innerHTML = '';
+    for (var i = 0; i < positions.length; i++) {
+      var dot = document.createElement('div');
+      dot.className = 'p-dot' + (selected.includes(i) ? ' active' : '');
+      dot.style.left = positions[i].x + 'px';
+      dot.style.top = positions[i].y + 'px';
+      dot.textContent = '';
+      dot.dataset.idx = i;
+      dot.addEventListener('click', function(){ selectDot(parseInt(this.dataset.idx)); });
+      dotsContainer.appendChild(dot);
+    }
+  }
+
+  function selectDot(idx) {
+    if (!locked) return;
+    if (selected.includes(idx)) return;
+    selected.push(idx);
+    renderDots();
+    drawLines();
+  }
+
+  function drawLines() {
+    ctx.clearRect(0, 0, 280, 250);
+    if (selected.length < 2) return;
+    ctx.beginPath();
+    ctx.strokeStyle = '#4db6ac';
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.moveTo(positions[selected[0]].x, positions[selected[0]].y);
+    for (var i = 1; i < selected.length; i++) {
+      ctx.lineTo(positions[selected[i]].x, positions[selected[i]].y);
+    }
+    ctx.stroke();
+    for (var j = 0; j < selected.length; j++) {
+      ctx.beginPath();
+      ctx.arc(positions[selected[j]].x, positions[selected[j]].y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = '#00897b';
+      ctx.fill();
+    }
+  }
+
+  function resetPattern() {
+    selected = [];
+    document.getElementById('lockError').textContent = '';
+    renderDots();
+    ctx.clearRect(0, 0, 280, 250);
+  }
+
+  function checkPattern() {
+    if (!locked) return;
+    if (selected.length !== correct.length) {
+      document.getElementById('lockError').textContent = '请连接 4 个点';
+      return;
+    }
+    var match = true;
+    for (var i = 0; i < correct.length; i++) {
+      if (selected[i] !== correct[i]) { match = false; break; }
+    }
+    if (match) {
+      locked = false;
+      document.getElementById('lockScreen').classList.add('hidden');
+      var body = document.querySelector('.diary-body');
+      if (body) body.scrollTop = body.scrollHeight;
+    } else {
+      document.getElementById('lockError').textContent = '图案错误，请重试';
+      resetPattern();
+    }
+  }
+
+  document.getElementById('lockBtn').addEventListener('click', checkPattern);
+  document.getElementById('lockResetBtn').addEventListener('click', resetPattern);
+
+  // 8.26 日记链接 → 剧本杀密码盘点
+  var entryLink = document.getElementById('entryLinkPassword');
+  if (entryLink) {
+    entryLink.addEventListener('click', function(){
+      window.open('juben_password.html', '_blank');
+    });
+  }
+
+  renderDots();
+})();
+</script>
+</body>
+</html>

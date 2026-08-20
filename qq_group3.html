@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>0.5偏1只做0 · QQ</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    .header {
+      background: #fff;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header .back { font-size: 22px; color: #555; cursor: pointer; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.15s; }
+    .header .back:hover { background: #f0f0f0; }
+    .header .info { flex: 1; min-width: 0; }
+    .header .info .name { font-size: 16px; font-weight: 700; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header .info .sub { font-size: 11px; color: #999; margin-top: 1px; }
+    .header .more { font-size: 20px; color: #666; cursor: default; }
+
+    .chat-area {
+      flex: 1; overflow-y: auto; padding: 16px 14px;
+      background: #f0f0f0; display: flex; flex-direction: column;
+    }
+
+    .message-row { display: flex; margin-bottom: 16px; animation: msgIn 0.3s ease-out; max-width: 100%; }
+    @keyframes msgIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+    .message-row.received { justify-content: flex-start; }
+    .message-row.sent { justify-content: flex-end; }
+
+    .msg-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; user-select: none; }
+    .message-row.received .msg-avatar { margin-right: 8px; }
+    .message-row.sent .msg-avatar { margin-left: 8px; order: 1; }
+
+    .date-label { text-align: center; font-size: 12px; color: #b0b0b0; margin: 12px 0; }
+    .date-label span { background: #e8e8e8; padding: 3px 14px; border-radius: 10px; font-size: 11px; }
+
+    .msg-sender-label { font-size: 12px; font-weight: 600; color: #888; margin-bottom: 3px; padding-left: 4px; }
+
+    .msg-content { display: flex; flex-direction: column; max-width: 80%; }
+    .message-row.sent .msg-content { align-items: flex-end; }
+    .message-row.received .msg-content { align-items: flex-start; }
+
+    .bubble { padding: 10px 16px; border-radius: 16px; font-size: 15px; line-height: 1.6; word-break: break-word; position: relative; white-space: pre-line; }
+    .message-row.received .bubble { background: #fff; color: #333; border-bottom-left-radius: 4px; }
+    .message-row.sent .bubble { background: #c6e6f7; color: #333; border-bottom-right-radius: 4px; }
+
+    .chat-input-bar { background: #fff; border-top: 1px solid #e0e0e0; padding: 10px 16px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; }
+    .chat-input-bar input { flex: 1; padding: 10px 16px; border: 1px solid #d0d0d0; border-radius: 20px; font-size: 14px; font-family: inherit; outline: none; background: #f8f8f8; cursor: text; }
+    .chat-input-bar input::placeholder { color: #bbb; }
+    .chat-input-bar .send-btn { padding: 8px 22px; background: #ddd; color: #fff; border: none; border-radius: 20px; font-size: 14px; font-family: inherit; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <div class="header">
+      <div class="back" onclick="window.close()">‹</div>
+      <div class="info">
+        <div class="name">0.5偏1只做0 (3)</div>
+      </div>
+      <div class="more">⋯</div>
+    </div>
+
+    <div class="chat-area">
+
+      <div class="date-label"><span>7月23日</span></div>
+
+      <!-- 亲友B @池延 -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#34495e;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友B</div>
+          <div class="bubble">@池延 你最后去了哪个学校？</div>
+        </div>
+      </div>
+
+      <!-- 我（池延）回复 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">望月高中</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 亲友A -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#e84393;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友A</div>
+          <div class="bubble">可以可以</div>
+        </div>
+      </div>
+
+      <!-- 亲友B -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#34495e;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友B</div>
+          <div class="bubble">不错不错</div>
+        </div>
+      </div>
+
+      <!-- 亲友B -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#34495e;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友B</div>
+          <div class="bubble">离我家还挺近</div>
+        </div>
+      </div>
+
+      <div class="date-label"><span>8月26日</span></div>
+
+      <!-- 池延发消息 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">@全体成员 帮我验证一下微信。。发839103到我号上</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 我 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">我换手机但是把微信密码给忘了</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 亲友A -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#e84393;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友A</div>
+          <div class="bubble">。。。第几次了</div>
+        </div>
+      </div>
+
+      <!-- 亲友B -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#34495e;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友B</div>
+          <div class="bubble">小姐姐你记性无敌了</div>
+        </div>
+      </div>
+
+      <!-- 我 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">错了错了。。我一定把密码记到日记里</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 亲友B -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#34495e;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友B</div>
+          <div class="bubble">你还写日记？不是，那万一被别人看到怎么办</div>
+        </div>
+      </div>
+
+      <!-- 我 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">没事啊我给日记上锁了</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 亲友A -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#e84393;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友A</div>
+          <div class="bubble">。。那你如果把日记密码忘了怎么办？</div>
+        </div>
+      </div>
+
+      <!-- 我 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">不会的</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 我 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">我不是最爱扫雷了吗</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 我 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">我自己做了个扫雷小程序，把密码藏进去了</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 我 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="bubble">万一我忘了去查一下就知道了😁</div>
+        </div>
+        <div class="msg-avatar" style="background:url('3.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 亲友B -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#34495e;"></div>
+        <div class="msg-content">
+          <div class="msg-sender-label">亲友B</div>
+          <div class="bubble">可以可以，服了你</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="chat-input-bar">
+      <input type="text" id="chatInput" placeholder="输入消息..." autocomplete="off">
+      <button class="send-btn" id="sendBtn" disabled>发送</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var sendBtn = document.getElementById('sendBtn');
+      sendBtn.addEventListener('click', function(e) { e.preventDefault(); });
+      document.getElementById('chatInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') e.preventDefault();
+      });
+    })();
+  </script>
+</body>
+</html>

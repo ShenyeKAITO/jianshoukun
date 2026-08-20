@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>计算器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #1c1c1e;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #333;
+    }
+
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+      background: #1c1c1e;
+    }
+    .status .time { color: #999; font-weight: 600; }
+
+    /* 计算器主体 */
+    .calc-body {
+      flex: 1;
+      background: #1c1c1e;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+
+    /* 显示屏 */
+    .display {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+      padding: 0 8px 16px;
+      min-height: 100px;
+    }
+
+    .display .expression {
+      font-size: 18px;
+      color: #666;
+      min-height: 24px;
+      word-break: break-all;
+      text-align: right;
+      width: 100%;
+    }
+
+    .display .result {
+      font-size: 48px;
+      font-weight: 200;
+      color: #fff;
+      word-break: break-all;
+      text-align: right;
+      width: 100%;
+      transition: font-size 0.15s;
+    }
+
+    .display .result.small {
+      font-size: 36px;
+    }
+
+    /* 按键网格 */
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .key {
+      aspect-ratio: 1 / 1;
+      border: none;
+      border-radius: 50%;
+      font-size: 26px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.1s;
+    }
+    .key:active {
+      filter: brightness(1.4);
+    }
+
+    .key.num {
+      background: #333;
+      color: #fff;
+    }
+    .key.op {
+      background: #ff9f0a;
+      color: #fff;
+    }
+    .key.func {
+      background: #a5a5a5;
+      color: #000;
+    }
+    .key.zero {
+      border-radius: 36px;
+      grid-column: span 2;
+      aspect-ratio: auto;
+      justify-content: flex-start;
+      padding-left: 28px;
+    }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+      .key { font-size: 22px; }
+    }
+
+    /* 自定义弹窗 */
+    .modal-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #2c2c2e;
+      border-radius: 20px;
+      padding: 32px 28px 24px;
+      width: 100%;
+      max-width: 300px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+    .modal-icon { font-size: 40px; margin-bottom: 12px; }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .modal-desc {
+      font-size: 14px;
+      color: #999;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .modal-btns {
+      display: flex;
+      gap: 12px;
+    }
+    .modal-btn {
+      flex: 1;
+      padding: 12px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .modal-btn:active { transform: scale(0.97); }
+    .modal-cancel {
+      background: #3a3a3c;
+      color: #999;
+    }
+    .modal-cancel:hover { background: #444; }
+    .modal-confirm {
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      color: #fff;
+    }
+    .modal-confirm:hover { filter: brightness(1.1); }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="status">
+    <span class="time">12:15</span>
+    <span>📶 🔋</span>
+  </div>
+
+  <div class="calc-body">
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+
+    <div class="keys">
+      <button class="key func" data-action="clear">C</button>
+      <button class="key func" data-action="plusminus">±</button>
+      <button class="key func" data-action="percent">%</button>
+      <button class="key op" data-action="divide">÷</button>
+
+      <button class="key num" data-value="7">7</button>
+      <button class="key num" data-value="8">8</button>
+      <button class="key num" data-value="9">9</button>
+      <button class="key op" data-action="multiply">×</button>
+
+      <button class="key num" data-value="4">4</button>
+      <button class="key num" data-value="5">5</button>
+      <button class="key num" data-value="6">6</button>
+      <button class="key op" data-action="subtract">−</button>
+
+      <button class="key num" data-value="1">1</button>
+      <button class="key num" data-value="2">2</button>
+      <button class="key num" data-value="3">3</button>
+      <button class="key op" data-action="add">+</button>
+
+      <button class="key num zero" data-value="0">0</button>
+      <button class="key num" data-value=".">.</button>
+      <button class="key op" data-action="equals">=</button>
+    </div>
+  </div>
+</div>
+
+<!-- 自定义弹窗 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-icon">🔐</div>
+    <div class="modal-title">检测到隐藏系统出口</div>
+    <div class="modal-desc">是否退出隐藏空间，进入主系统？</div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-cancel" id="modalCancel">取消</button>
+      <button class="modal-btn modal-confirm" id="modalConfirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var display = document.getElementById('result');
+  var expr = document.getElementById('expression');
+  var current = '0';
+  var previous = '';
+  var operation = null;
+  var resetNext = false;
+
+  function updateDisplay() {
+    if (current.length > 10) {
+      display.classList.add('small');
+    } else {
+      display.classList.remove('small');
+    }
+    display.textContent = current;
+  }
+
+  function inputNumber(value) {
+    if (resetNext) {
+      current = '';
+      resetNext = false;
+    }
+    if (value === '.' && current.includes('.')) return;
+    if (current === '0' && value !== '.') {
+      current = value;
+    } else {
+      current += value;
+    }
+    updateDisplay();
+  }
+
+  function inputOperator(op) {
+    if (operation && !resetNext) {
+      calculate();
+    }
+    previous = current;
+    operation = op;
+    resetNext = true;
+    var symbols = {add:'+', subtract:'−', multiply:'×', divide:'÷'};
+    expr.textContent = previous + ' ' + (symbols[op] || op);
+  }
+
+  function calculate() {
+    if (!operation) return;
+    var prev = parseFloat(previous);
+    var curr = parseFloat(current);
+    if (isNaN(prev) || isNaN(curr)) return;
+
+    // 彩蛋：账号+密码= → 弹窗确认 → 跳转主系统
+    // 账号=手机号 1568438564046，密码=230829
+    if (previous === '1568438564046' && curr === 230829) {
+      document.getElementById('modalOverlay').classList.add('show');
+      return;
+    }
+
+    var result;
+    switch (operation) {
+      case 'add': result = prev + curr; break;
+      case 'subtract': result = prev - curr; break;
+      case 'multiply': result = prev * curr; break;
+      case 'divide': result = curr === 0 ? '错误' : prev / curr; break;
+      default: return;
+    }
+    if (typeof result === 'number') {
+      result = parseFloat(result.toFixed(8));
+    }
+    current = String(result);
+    operation = null;
+    resetNext = true;
+    expr.textContent = '';
+    updateDisplay();
+  }
+
+  function clear() {
+    current = '0';
+    previous = '';
+    operation = null;
+    resetNext = false;
+    expr.textContent = '';
+    updateDisplay();
+  }
+
+  function toggleSign() {
+    if (current !== '0') {
+      current = current.startsWith('-') ? current.slice(1) : '-' + current;
+      updateDisplay();
+    }
+  }
+
+  function percent() {
+    var num = parseFloat(current);
+    if (!isNaN(num)) {
+      current = String(num / 100);
+      updateDisplay();
+    }
+  }
+
+  // 绑定按键
+  document.querySelectorAll('.key').forEach(function(key) {
+    key.addEventListener('click', function() {
+      if (this.dataset.value !== undefined) {
+        inputNumber(this.dataset.value);
+      } else if (this.dataset.action === 'clear') {
+        clear();
+      } else if (this.dataset.action === 'plusminus') {
+        toggleSign();
+      } else if (this.dataset.action === 'percent') {
+        percent();
+      } else if (this.dataset.action === 'equals') {
+        calculate();
+      } else if (this.dataset.action) {
+        inputOperator(this.dataset.action);
+      }
+    });
+  });
+  // 弹窗按钮
+  document.getElementById('modalConfirm').addEventListener('click', function(){
+    document.getElementById('modalOverlay').classList.remove('show');
+    var w = window.open('normal_desktop.html', '_blank');
+    if (!w) alert('请打开 normal_desktop.html');
+  });
+  document.getElementById('modalCancel').addEventListener('click', function(){
+    document.getElementById('modalOverlay').classList.remove('show');
+  });
+})();
+</script>
+</body>
+</html>

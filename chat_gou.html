@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>狗</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #ededed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #ededed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    /* 顶栏：标题居中，无返回箭头 */
+    .header {
+      background: #fff;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .header .title {
+      font-size: 16px; font-weight: 700; color: #333;
+    }
+
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px;
+    }
+    .chat-body::-webkit-scrollbar { width: 3px; }
+    .chat-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+    /* ===== 聊天消息 ===== */
+    .msg-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .msg-row.me { justify-content: flex-end; }
+    .msg-ava {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #e5e5e5 center/cover;
+      flex-shrink: 0;
+    }
+    .msg-row.me .msg-ava { margin-left: 10px; }
+    .msg-row.he .msg-ava { margin-right: 10px; }
+    .msg-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 280px;
+    }
+    .msg-tag {
+      flex-shrink: 0;
+      background: #e6e6e6;
+      color: #aaa;
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 9px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .msg-bubble {
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+      background: #fff;
+      max-width: 240px;
+    }
+    .msg-row.me .msg-bubble {
+      background: #95ec69;
+    }
+    .msg-row .msg-bubble.gray {
+      background: #cfcfcf;
+    }
+    .msg-time {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin: 4px 0 14px;
+      line-height: 1;
+    }
+    .msg-system {
+      text-align: center;
+      font-size: 11px;
+      color: #b0b0b0;
+      margin: 4px 0 14px;
+      line-height: 1;
+    }
+    .msg-note {
+      font-size: 10px;
+      color: #bbb;
+      padding: 0 0 12px 50px;
+      line-height: 1;
+    }
+
+    /* ===== 链接卡片（QQ 分享样式） ===== */
+    .msg-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-width: 200px;
+    }
+    .msg-link .link-title {
+      flex: 1;
+      font-size: 14px;
+      color: #333;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .msg-link .link-thumb {
+      width: 46px; height: 46px;
+      flex-shrink: 0;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      background: #fde7ef;
+    }
+
+    /* ===== 输入栏上方：上皮说 / 本人说 ===== */
+    .speak-switch {
+      display: flex;
+      align-self: flex-start;
+      background: #fff;
+      border-radius: 8px;
+      padding: 3px;
+      margin: 8px 0 6px 12px;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+    }
+    .speak-switch .ss-opt {
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #bbb;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .speak-switch .ss-opt.active {
+      background: #4db6ac;
+      color: #fff;
+    }
+
+    /* ===== 输入栏 ===== */
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border-top: 1px solid #e0e0e0;
+      padding: 8px 12px;
+      flex-shrink: 0;
+    }
+    .chat-input-bar input {
+      flex: 1;
+      height: 36px;
+      border: none;
+      background: #f5f5f5;
+      border-radius: 18px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      color: #333;
+    }
+    .chat-input-bar input::placeholder { color: #b0b0b0; }
+    .chat-input-bar .send-btn {
+      height: 36px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 18px;
+      background: #d4a373;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <div class="header">
+      <div class="title">狗</div>
+    </div>
+
+    <div class="chat-body">
+      <div class="msg-time">9月3日2:00</div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">仰陷软座阖眸滚齿滑燃橙焰</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">啮嗫烟蒂就火燃猩呷汲过肺溢唇缭绕鼻腔窜雾</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">掌撑颚敛神慵散寻声揶讽斜睇勾笑</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">勾靨翕唇惰嗓浑骂龇齿艳舌舔嗜唇瓣</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">颦蹙蜷指恣肆拽扯绷紧胸肌突筋凸点透料</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">鬓鬢翳狭瞳震腔沉笑屈肘粲指撩尾鬟嗤笑劣嗓</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">脾睨动胯黛色绸缎裹勒腹荑蔻色覆痕压瞳低颅盎然注髀根腻荑黛渔网勒暗痕压软肉屈指捏掐</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">腾腕懒散拎盒撬盖指腹夹烟抵唇,瓠犀抵燃烟合掌慵懒仰颅扯颏咧唇吐颢气</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">侧首掐烟铁环捆颈嬉笑屈指弹金铃戏虐哑嗓低笑</div>
+        </div>
+      </div>
+
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#000000"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">忍欲抵鄂咒骂糙掌抚拍翘臀咧唇瓣卮言泄腔</div>
+        </div>
+      </div>
+      <!-- 备注小字 -->
+      <div class="msg-note">以上内容来源空间梗图，需要标明作者/出处请联系我，非常感谢</div>
+
+      <!-- 我：？ -->
+      <div class="msg-row me">
+        <div class="msg-content">
+          <div class="msg-bubble">？</div>
+        </div>
+        <div class="msg-ava" style="background-image:url('13.jpg')"></div>
+      </div>
+
+      <!-- 拉黑提示 -->
+      <div class="msg-system">已拉黑对方</div>
+    </div>
+
+    <div class="speak-switch">
+      <span class="ss-opt active">上皮说</span>
+      <span class="ss-opt">本人说</span>
+    </div>
+    <div class="chat-input-bar">
+      <input type="text" placeholder="输入消息…">
+      <button class="send-btn">发送</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      /* 上皮说 / 本人说 切换（必选一个） */
+      var ssOpts = document.querySelectorAll('.speak-switch .ss-opt');
+      ssOpts.forEach(function(opt){
+        opt.addEventListener('click', function(){
+          ssOpts.forEach(function(o){ o.classList.remove('active'); });
+          this.classList.add('active');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>名人朋友圈</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #f5f5f5;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #f5f5f5;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    .header {
+      background: #fff;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header .info { flex: 1; }
+    .header .info .name { font-size: 16px; font-weight: 700; color: #333; }
+
+    /* ===== 内容区 ===== */
+    .content {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background: #f0f0f0;
+    }
+
+    .tab-page {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      position: absolute;
+      top: 0; left: 0;
+    }
+    .tab-page.active { display: block; }
+
+    /* 通用空状态 */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 20px;
+      color: #ccc;
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state .text { font-size: 14px; }
+
+    /* ===== 消息页 ===== */
+    .msg-list { padding: 0; }
+
+    .msg-session {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+    }
+    .msg-session .ava {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-right: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #fff;
+    }
+    .msg-session .info { flex: 1; min-width: 0; }
+    .msg-session .info .name-row {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 4px;
+    }
+    .msg-session .info .name-row .name {
+      font-size: 15px; font-weight: 600; color: #333;
+    }
+    .msg-session .info .name-row .time {
+      font-size: 11px; color: #b0b0b0; flex-shrink: 0; margin-left: 8px;
+    }
+    .msg-session .info .preview {
+      font-size: 13px; color: #999;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .badge-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #e94560;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    /* ===== 动态页 ===== */
+    .feed-nav {
+      display: flex;
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .feed-nav .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 14px;
+      color: #999;
+      cursor: default;
+      border-bottom: 2px solid transparent;
+    }
+    .feed-nav .tab.active {
+      color: #333;
+      font-weight: 600;
+      border-bottom-color: #d4a373;
+    }
+
+    /* ===== 动态卡片 ===== */
+    .feed-list { padding: 0 0 20px; }
+    .feed-card {
+      background: #fff;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .fc-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .fc-ava {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: #9e9e9e; /* 纯色占位 */
+      flex-shrink: 0;
+    }
+    .fc-info { flex: 1; min-width: 0; }
+    .fc-name { font-size: 15px; font-weight: 600; color: #222; }
+    .fc-no { font-size: 11px; color: #999; margin-top: 2px; }
+    .fc-content {
+      margin: 10px 0 0 56px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.7;
+    }
+    .fc-foot {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 2px;
+      margin-left: 56px;
+    }
+    /* 两点按钮：浅灰圆角长方形气泡 */
+    .fc-actions {
+      position: relative;
+      display: flex;
+      background: #f2f2f2;
+      border-radius: 6px;
+      padding: 4px 7px;
+    }
+    .fc-more {
+      background: none;
+      border: none;
+      color: #777;
+      font-size: 14px;
+      letter-spacing: 2px;
+      line-height: 1;
+      padding: 0 2px;
+      text-indent: 2px; /* 抵消末尾字间距，让两个点视觉居中 */
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .fc-more:hover { color: #333; }
+
+    /* 两点弹出：点赞 / 评论（浅灰圆角长方形，带符号） */
+    .fc-pop {
+      position: absolute;
+      right: -2px;
+      top: 18px;
+      background: #ececec;
+      border-radius: 5px;
+      display: none;
+      overflow: hidden;
+      z-index: 5;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+    .fc-pop.show { display: flex; }
+    .fc-pop-item {
+      color: #333;
+      font-size: 12px;
+      padding: 6px 14px;
+      cursor: pointer;
+      white-space: nowrap;
+      line-height: 1.5;
+    }
+    .fc-pop-item + .fc-pop-item { border-left: 1px solid #d5d5d5; }
+    .fc-pop-item:hover { background: #e0e0e0; }
+
+    /* 点赞列表（微信朋友圈样式：浅灰圆角，名字蓝色） */
+    .fc-like {
+      margin: 8px 0 0 56px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .fc-like .like-icon { margin-right: 4px; }
+    .fc-like .like-names { color: #576b95; }
+
+    /* 评论（微信朋友圈样式：名字蓝色） */
+    .fc-comment {
+      margin: 6px 0 0 56px;
+      background: #f0f0f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .fc-comment .cmt-name { color: #576b95; margin-right: 2px; }
+
+    /* 动态配图（完整显示原图比例） */
+    .fc-img {
+      margin: 10px 0 0 56px;
+      max-width: 240px;
+      width: auto;
+      height: auto;
+      border-radius: 4px;
+      display: block;
+    }
+
+    /* ===== 我页 ===== */
+    .profile-header {
+      text-align: center;
+      padding: 30px 20px 20px;
+      background: #fff;
+    }
+    .profile-header .avatar-big {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      background: #e5e5e5;
+    }
+    .profile-header .nick {
+      font-size: 20px;
+      font-weight: 700;
+      color: #222;
+    }
+    .profile-header .uid {
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 4px;
+    }
+    .profile-header .bio {
+      font-size: 13px;
+      color: #888;
+      margin-top: 10px;
+      line-height: 1.6;
+    }
+
+    .profile-stats {
+      display: flex;
+      background: #fff;
+      border-top: 1px solid #f0f0f0;
+      padding: 14px 0;
+    }
+    .profile-stats .stat-item {
+      flex: 1;
+      text-align: center;
+    }
+    .profile-stats .stat-item .num {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+    }
+    .profile-stats .stat-item .label {
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    .profile-section {
+      margin-top: 8px;
+      background: #fff;
+    }
+    .profile-section .ps-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #bbb;
+      padding: 12px 16px 6px;
+    }
+    .profile-section .ps-row {
+      display: flex;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 14px;
+    }
+    .profile-section .ps-row .label {
+      color: #999;
+      width: 70px;
+      flex-shrink: 0;
+    }
+    .profile-section .ps-row .value {
+      color: #333;
+      flex: 1;
+    }
+
+    /* ===== 我页顶部行 ===== */
+    .profile-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 16px;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .me-avatar {
+      width: 70px; height: 70px;
+      border-radius: 50%;
+      background: url('11.jpg') center/cover;
+      flex-shrink: 0;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .me-id { flex: 1; min-width: 0; }
+    .me-name {
+      font-size: 21px;
+      font-weight: 700;
+      color: #222;
+    }
+    .me-uid {
+      font-size: 12px;
+      color: #999;
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+    .switch-btn {
+      padding: 6px 11px;
+      border: 1px solid #4db6ac;
+      border-radius: 18px;
+      background: #4db6ac;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .switch-btn:hover { background: #80cbc4; border-color: #80cbc4; }
+
+    /* ===== 角色下拉栏 ===== */
+    .role-panel {
+      display: none;
+      background: #fff;
+      border-bottom: 1px solid #f0f0f0;
+      padding: 6px 16px 12px;
+    }
+    .role-panel.show { display: block; }
+    .role-panel-title {
+      font-size: 12px;
+      color: #999;
+      padding: 8px 4px 8px;
+    }
+    .role-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 8px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .role-option:hover { background: #f5f5f5; }
+    .role-option.active { background: #e0f2f1; }
+    .role-option .r-ava {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #e5e5e5 center/cover;
+      flex-shrink: 0;
+    }
+    .role-option .r-info { flex: 1; min-width: 0; }
+    .role-option .r-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #222;
+    }
+    .role-option .r-uid {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+    .role-option .r-check {
+      font-size: 14px;
+      color: #00897b;
+      visibility: hidden;
+    }
+    .role-option.active .r-check { visibility: visible; }
+
+    /* ===== 我的主页入口 ===== */
+    .home-entry {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      margin-top: 8px;
+      padding: 15px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .home-entry:hover { background: #fafafa; }
+    .home-entry .he-icon { font-size: 18px; }
+    .home-entry .he-text { flex: 1; font-size: 15px; font-weight: 600; color: #333; }
+    .home-entry .he-arrow { font-size: 20px; color: #bbb; }
+
+    /* ===== 底部导航 ===== */
+    .bottom-nav {
+      display: flex;
+      border-top: 1px solid #e0e0e0;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .bottom-nav .nav-item {
+      flex: 1;
+      text-align: center;
+      padding: 8px 0 6px;
+      font-size: 11px;
+      color: #999;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .bottom-nav .nav-item.active { color: #d4a373; }
+    .bottom-nav .nav-item .nav-icon {
+      font-size: 20px;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* ===== 新手指导（登录后首次进入，不可跳过） ===== */
+    .guide-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .guide-overlay.show { display: flex; }
+    .guide-card {
+      width: 100%;
+      max-width: 320px;
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px 24px 22px;
+      text-align: center;
+      box-shadow: 0 12px 48px rgba(0,0,0,0.45);
+    }
+    .guide-icon { font-size: 40px; margin-bottom: 10px; }
+    .guide-title { font-size: 20px; font-weight: 700; color: #222; margin-bottom: 4px; }
+    .guide-sub { font-size: 12px; color: #999; margin-bottom: 20px; letter-spacing: 1px; }
+    .guide-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      text-align: left;
+      background: #f7f8fa;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .guide-item .gi-num {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .guide-item .gi-text {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #444;
+    }
+    .guide-item .gi-text b { color: #00897b; }
+    .guide-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px 0;
+      border: none;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .guide-btn:hover { filter: brightness(1.1); }
+    .guide-btn:active { transform: scale(0.98); }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <div class="header">
+      <div class="info">
+        <div class="name" id="headerTitle">消息</div>
+      </div>
+    </div>
+
+    <!-- ====== 内容区 ====== -->
+    <div class="content">
+
+      <!-- 消息页 -->
+      <div class="tab-page active" id="pageMsg">
+        <div class="msg-list">
+          <!-- 狗对话 -->
+          <div class="msg-session">
+            <div class="ava" style="background:#000000"></div>
+            <div class="info">
+              <div class="name-row">
+                <div class="name">狗</div>
+                <div class="time">9月3日2:00</div>
+              </div>
+              <div class="preview">你已拉黑对方</div>
+            </div>
+                      </div>
+          <!-- 高塔对话 -->
+          <div class="msg-session">
+            <div class="ava" style="background:url('9.png') center/cover"></div>
+            <div class="info">
+              <div class="name-row">
+                <div class="name">高塔（谢砚）</div>
+                <div class="time">8月29日0:43</div>
+              </div>
+              <div class="preview">哦哇谢谢哥哥我都可以</div>
+            </div>
+                      </div>
+          <!-- 倒吊人对话 -->
+          <div class="msg-session">
+            <div class="ava" style="background:#6c5ce7"></div>
+            <div class="info">
+              <div class="name-row">
+                <div class="name">倒吊人</div>
+                <div class="time">8月27日1:23</div>
+              </div>
+              <div class="preview">不管怎么样还是谢谢你</div>
+            </div>
+                      </div>
+          <!-- 东方曜对话 -->
+          <div class="msg-session">
+            <div class="ava" style="background:#ff8f00"></div>
+            <div class="info">
+              <div class="name-row">
+                <div class="name">东方曜</div>
+                <div class="time">8月13日2:03</div>
+              </div>
+              <div class="preview">暖躯贴，拧身挣扎，寥寥数语，心海起波澜，虎口卡腰侧，长发贴拂面颊，指压他唇角，哪怕是惩罚，眼前人似乎都甘之如饴。是吗？曜 ，你好像说了些不得了的话啊。</div>
+            </div>
+                      </div>
+          <!-- 李白对话 -->
+          <div class="msg-session">
+            <div class="ava" style="background:#00897b"></div>
+            <div class="info">
+              <div class="name-row">
+                <div class="name">李白</div>
+                <div class="time">8月13日1:58</div>
+              </div>
+              <div class="preview">暖躯贴，拧身挣扎，寥寥数语，心海起波澜，虎口卡腰侧，长发贴拂面颊，指压他唇角，哪怕是惩罚，眼前人似乎都甘之如饴。是吗？曜 ，你好像说了些不得了的话啊。</div>
+            </div>
+                      </div>
+        </div>
+      </div>
+
+      <!-- 动态页 -->
+      <div class="tab-page" id="pageFeed">
+        <div class="feed-nav">
+          <div class="tab active">广场 · 上皮</div>
+        </div>
+        <div class="feed-list">
+          <!-- 倒吊人：被吃醋好爽... -->
+          <div class="feed-card">
+            <div class="fc-head">
+              <div class="fc-ava" style="background:#6c5ce7"></div>
+              <div class="fc-info">
+                <div class="fc-name">倒吊人</div>
+                <div class="fc-no">No.9573300</div>
+              </div>
+            </div>
+            <div class="fc-content">被吃醋好爽 被质问好爽 被控制好爽 你对我的占有欲控制欲窥探欲太低我他妈真的很失望</div>
+            <div class="fc-like">
+              <span class="like-icon">👍</span>
+              <span class="like-names">张起灵、路人丁</span>
+            </div>
+            <div class="fc-foot">
+              <div class="fc-actions">
+                <div class="fc-pop">
+                  <span class="fc-pop-item">👍 赞</span>
+                  <span class="fc-pop-item">💬 评论</span>
+                </div>
+                <button class="fc-more">••</button>
+              </div>
+            </div>
+          </div>
+          <!-- 路人甲：赞扩 -->
+          <div class="feed-card">
+            <div class="fc-head">
+              <div class="fc-ava" style="background:#9e9e9e"></div>
+              <div class="fc-info">
+                <div class="fc-name">路人甲</div>
+                <div class="fc-no">No.749382897</div>
+              </div>
+            </div>
+            <div class="fc-content">赞扩</div>
+            <div class="fc-like">
+              <span class="like-icon">👍</span>
+              <span class="like-names">黄少天</span>
+            </div>
+            <div class="fc-foot">
+              <div class="fc-actions">
+                <div class="fc-pop">
+                  <span class="fc-pop-item">👍 赞</span>
+                  <span class="fc-pop-item">💬 评论</span>
+                </div>
+                <button class="fc-more">••</button>
+              </div>
+            </div>
+          </div>
+          <!-- 心选：完全我 + 图片15 -->
+          <div class="feed-card">
+            <div class="fc-head">
+              <div class="fc-ava" style="background:#ec407a"></div>
+              <div class="fc-info">
+                <div class="fc-name">心选</div>
+                <div class="fc-no">No.7712019</div>
+              </div>
+            </div>
+            <div class="fc-content">完全我</div>
+            <img class="fc-img" src="15.jpg" alt="">
+            <div class="fc-foot">
+              <div class="fc-actions">
+                <div class="fc-pop">
+                  <span class="fc-pop-item">👍 赞</span>
+                  <span class="fc-pop-item">💬 评论</span>
+                </div>
+                <button class="fc-more">••</button>
+              </div>
+            </div>
+          </div>
+          <!-- 赵云：剧组+++ -->
+          <div class="feed-card">
+            <div class="fc-head">
+              <div class="fc-ava" style="background:#4d8ecb"></div>
+              <div class="fc-info">
+                <div class="fc-name">赵云</div>
+                <div class="fc-no">No.9527459</div>
+              </div>
+            </div>
+            <div class="fc-content">剧组+++</div>
+            <div class="fc-like">
+              <span class="like-icon">👍</span>
+              <span class="like-names">韩信、李白</span>
+            </div>
+            <div class="fc-foot">
+              <div class="fc-actions">
+                <div class="fc-pop">
+                  <span class="fc-pop-item">👍 赞</span>
+                  <span class="fc-pop-item">💬 评论</span>
+                </div>
+                <button class="fc-more">••</button>
+              </div>
+            </div>
+          </div>
+          <!-- 徐敏敏：赞恋 -->
+          <div class="feed-card">
+            <div class="fc-head">
+              <div class="fc-ava" style="background:#616161"></div>
+              <div class="fc-info">
+                <div class="fc-name">徐敏敏</div>
+                <div class="fc-no">No.6610204</div>
+              </div>
+            </div>
+            <div class="fc-content">赞恋</div>
+            <div class="fc-like">
+              <span class="like-icon">👍</span>
+              <span class="like-names">赵颖</span>
+            </div>
+            <div class="fc-comment">
+              <span class="cmt-name">赵颖</span>：当真了
+            </div>
+            <div class="fc-foot">
+              <div class="fc-actions">
+                <div class="fc-pop">
+                  <span class="fc-pop-item">👍 赞</span>
+                  <span class="fc-pop-item">💬 评论</span>
+                </div>
+                <button class="fc-more">••</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 我页 -->
+      <div class="tab-page" id="pageMe">
+        <div class="profile-row">
+          <div class="me-avatar" id="meAvatar"></div>
+          <div class="me-id">
+            <div class="me-name" id="meName">曜</div>
+            <div class="me-uid" id="meUid">No.3728729</div>
+          </div>
+          <button class="switch-btn" id="switchRoleBtn">切换角色</button>
+        </div>
+        <!-- 角色下拉栏 -->
+        <div class="role-panel" id="rolePanel">
+          <div class="role-panel-title">切换角色（共 <span id="roleCount">0</span> 个）</div>
+          <div class="role-list" id="roleList"></div>
+        </div>
+        <!-- 我的主页入口 -->
+        <div class="home-entry" id="homeEntry">
+          <span class="he-icon">🏠</span>
+          <span class="he-text">我的主页</span>
+          <span class="he-arrow">›</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ====== 底部导航 ====== -->
+    <div class="bottom-nav">
+      <div class="nav-item active" data-tab="msg">
+        <span class="nav-icon">💌</span>消息
+      </div>
+      <div class="nav-item" data-tab="feed">
+        <span class="nav-icon">🧭</span>动态
+      </div>
+      <div class="nav-item" data-tab="me">
+        <span class="nav-icon">🧙</span>我
+      </div>
+    </div>
+  </div>
+
+  <!-- 新手指导（不可跳过） -->
+  <div class="guide-overlay" id="guideOverlay">
+    <div class="guide-card">
+      <div class="guide-icon">🧙</div>
+      <div class="guide-title">新手指导</div>
+      <div class="guide-sub">欢迎使用 名人朋友圈</div>
+      <div class="guide-item">
+        <span class="gi-num">1</span>
+        <p class="gi-text">在「我」这里可以<b>切换角色</b>，每个角色有<b>自己独立的个人主页</b>。</p>
+      </div>
+      <div class="guide-item">
+        <span class="gi-num">2</span>
+        <p class="gi-text"><b>消息与动态不随切换角色变化</b>，无论在哪个角色上，都能看到所有角色的消息与动态。</p>
+      </div>
+      <button class="guide-btn" id="guideBtn">我知道了</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var headerTitle = document.getElementById('headerTitle');
+      var pages = {
+        msg: document.getElementById('pageMsg'),
+        feed: document.getElementById('pageFeed'),
+        me: document.getElementById('pageMe')
+      };
+      var navItems = document.querySelectorAll('.nav-item');
+
+      navItems.forEach(function(item){
+        item.addEventListener('click', function(){
+          var tab = this.getAttribute('data-tab');
+
+          // 切换导航高亮
+          navItems.forEach(function(n){ n.classList.remove('active'); });
+          this.classList.add('active');
+
+          // 切换页面
+          Object.keys(pages).forEach(function(key){
+            pages[key].classList.toggle('active', key === tab);
+          });
+
+          // 更新标题
+          var titles = { msg: '消息', feed: '动态', me: '我' };
+          headerTitle.textContent = titles[tab] || '动态';
+
+          // 切换页面时收起角色下拉栏
+          if (tab !== 'me') closeRolePanel();
+        });
+      });
+
+      /* ===== 角色切换 ===== */
+      var roles = [
+        { name: '曜',     img: '11.jpg', uid: '3728729' },
+        { name: '李白',   img: '12.jpg', uid: '8928738' },
+        { name: '路人甲', img: '3.jpg',  uid: '749382897' },
+        { name: '路人乙', img: '13.jpg', uid: '509421' },
+        { name: '恋人',   img: '14.jpg', uid: '8299012' }
+      ];
+      var currentRole = 0;
+      try {
+        var saved = parseInt(localStorage.getItem('game2_mpyq_role'), 10);
+        if (!isNaN(saved) && saved >= 0 && saved < roles.length) currentRole = saved;
+      } catch(e) {}
+
+      var meAvatar = document.getElementById('meAvatar');
+      var meName = document.getElementById('meName');
+      var meUid = document.getElementById('meUid');
+      var switchBtn = document.getElementById('switchRoleBtn');
+      var rolePanel = document.getElementById('rolePanel');
+      var roleList = document.getElementById('roleList');
+      var roleCount = document.getElementById('roleCount');
+
+      function renderProfile() {
+        var r = roles[currentRole];
+        if (r.color) {
+          meAvatar.style.backgroundImage = 'none';
+          meAvatar.style.backgroundColor = r.color;
+        } else {
+          meAvatar.style.backgroundColor = 'transparent';
+          meAvatar.style.backgroundImage = "url('" + r.img + "')";
+        }
+        meName.textContent = r.name;
+        meUid.textContent = 'No.' + r.uid;
+        try { localStorage.setItem('game2_mpyq_role', String(currentRole)); } catch(e) {}
+      }
+
+      function renderRoleList() {
+        roleCount.textContent = roles.length;
+        roleList.innerHTML = '';
+        roles.forEach(function(r, i){
+          var opt = document.createElement('div');
+          opt.className = 'role-option' + (i === currentRole ? ' active' : '');
+          var avaStyle = r.color
+            ? 'background-color:' + r.color
+            : 'background-image:url(\'' + r.img + '\')';
+          opt.innerHTML =
+            '<div class="r-ava" style="' + avaStyle + '"></div>' +
+            '<div class="r-info">' +
+              '<div class="r-name">' + r.name + '</div>' +
+              '<div class="r-uid">No.' + r.uid + '</div>' +
+            '</div>' +
+            '<div class="r-check">✔</div>';
+          opt.addEventListener('click', function(){
+            currentRole = i;
+            renderProfile();
+            renderRoleList();
+            closeRolePanel();
+          });
+          roleList.appendChild(opt);
+        });
+      }
+
+      function openRolePanel() {
+        renderRoleList();
+        rolePanel.classList.add('show');
+        switchBtn.textContent = '收起';
+      }
+      function closeRolePanel() {
+        rolePanel.classList.remove('show');
+        switchBtn.textContent = '切换角色';
+      }
+
+      switchBtn.addEventListener('click', function(){
+        if (rolePanel.classList.contains('show')) closeRolePanel();
+        else openRolePanel();
+      });
+
+      // 我的主页 → 打开当前角色的个人主页
+      document.getElementById('homeEntry').addEventListener('click', function(){
+        try { localStorage.setItem('game2_mpyq_role', String(currentRole)); } catch(e) {}
+        window.open('homepage.html', '_blank');
+      });
+
+      /* ===== 动态卡片：两个点 → 弹出赞/评论（多卡片通用） ===== */
+      document.addEventListener('click', function(e){
+        var more = e.target.closest('.fc-more');
+        if (more) {
+          e.stopPropagation();
+          var pop = more.closest('.fc-actions').querySelector('.fc-pop');
+          var wasOpen = pop.classList.contains('show');
+          // 同时只展开一个
+          document.querySelectorAll('.fc-pop.show').forEach(function(p){ p.classList.remove('show'); });
+          if (!wasOpen) pop.classList.add('show');
+          return;
+        }
+        // 点击弹出项或其它区域 → 全部收起
+        document.querySelectorAll('.fc-pop.show').forEach(function(p){ p.classList.remove('show'); });
+      });
+
+      /* ===== 聊天跳转 ===== */
+      // 点会话 → 打开独立聊天页（李白待加内容）
+      var CHAT_PAGES = {
+        '东方曜': 'chat_dongfangyao.html',
+        '李白': 'chat_libai.html',
+        '高塔（谢砚）': 'chat_gaota.html',
+        '狗': 'chat_gou.html',
+        '倒吊人': 'chat_daodiaoren.html'
+      };
+      document.addEventListener('click', function(e){
+        var session = e.target.closest('.msg-session');
+        if (session) {
+          var name = session.querySelector('.name').textContent;
+          var page = CHAT_PAGES[name];
+          if (page) window.open(page, '_blank');
+        }
+      });
+
+      /* ===== 新手指导（登录后首次进入，不可跳过） ===== */
+      var guideOverlay = document.getElementById('guideOverlay');
+      var guideBtn = document.getElementById('guideBtn');
+      if (guideOverlay && guideBtn) {
+        var guideDone = false;
+        try { guideDone = localStorage.getItem('game2_mpyq_guide') === '1'; } catch(e) {}
+        if (!guideDone) guideOverlay.classList.add('show');
+        guideBtn.addEventListener('click', function(){
+          guideOverlay.classList.remove('show');
+          try { localStorage.setItem('game2_mpyq_guide', '1'); } catch(e) {}
+        });
+      }
+
+      renderProfile();
+    })();
+  </script>
+</body>
+</html>

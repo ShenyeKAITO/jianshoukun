@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>高一（7）班班级群 · 微信</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    /* WeChat dark header */
+    .wx-header {
+      background: #2e2e2e;
+      padding: 10px 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .wx-header .back {
+      color: #fff; font-size: 22px; cursor: pointer;
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s;
+    }
+    .wx-header .back:hover { background: rgba(255,255,255,0.1); }
+    .wx-header .info { flex: 1; min-width: 0; }
+    .wx-header .info .name {
+      font-size: 16px; font-weight: 600; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .wx-header .info .sub {
+      font-size: 11px; color: #888; margin-top: 1px;
+    }
+    .wx-header .more { color: #fff; font-size: 18px; cursor: default; }
+
+    /* Chat area */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 14px;
+      background: #111;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message-row {
+      display: flex;
+      margin-bottom: 18px;
+      animation: msgIn 0.3s ease-out;
+      max-width: 100%;
+    }
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message-row.received { justify-content: flex-start; }
+    .message-row.sent { justify-content: flex-end; }
+
+    .msg-avatar {
+      width: 36px; height: 36px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      user-select: none;
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .message-row.received .msg-avatar { margin-right: 8px; }
+    .message-row.sent .msg-avatar { margin-left: 8px; order: 1; }
+
+    .date-label {
+      text-align: center;
+      font-size: 12px;
+      color: #555;
+      margin: 14px 0 16px;
+    }
+    .date-label span {
+      background: #1e1e1e;
+      padding: 4px 14px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #888;
+    }
+
+    .msg-sender-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #888;
+      margin-bottom: 3px;
+      padding-left: 4px;
+    }
+
+    .msg-content {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+    }
+    .message-row.sent .msg-content { align-items: flex-end; }
+    .message-row.received .msg-content { align-items: flex-start; }
+
+    .bubble {
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 15px;
+      line-height: 1.6;
+      word-break: break-word;
+      position: relative;
+      white-space: pre-line;
+    }
+    .message-row.received .bubble {
+      background: #2e2e2e;
+      color: #e0e0e0;
+      border-top-left-radius: 2px;
+    }
+    .message-row.sent .bubble {
+      background: #07C160;
+      color: #fff;
+      border-top-right-radius: 2px;
+    }
+
+    .chat-input-bar {
+      background: #2e2e2e;
+      border-top: 1px solid #222;
+      padding: 10px 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chat-input-bar input {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      background: #1a1a1a;
+      color: #ccc;
+    }
+    .chat-input-bar input::placeholder { color: #666; }
+    .chat-input-bar .send-btn {
+      padding: 8px 22px;
+      background: #444;
+      color: #888;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: not-allowed;
+    }
+
+    .sticker-btn {
+      align-self: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: -6px 0 18px;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, #f44336, #e53935);
+      border: none;
+      border-radius: 26px;
+      font-size: 22px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: 0 3px 12px rgba(229,57,53,0.4);
+      transition: transform 0.1s, box-shadow 0.15s;
+    }
+    .sticker-btn:hover { box-shadow: 0 5px 16px rgba(229,57,53,0.55); }
+    .sticker-btn:active { transform: scale(0.94); }
+
+    .system-msg {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin: 8px 0 14px;
+    }
+    .system-msg span {
+      background: #1e1e1e;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">21:30</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <!-- 微信头部 -->
+    <div class="wx-header">
+      <div class="back" onclick="window.close()">‹</div>
+      <div class="info">
+        <div class="name">高一（7）班班级群</div>
+      </div>
+      <div class="more">⋯</div>
+    </div>
+
+    <div class="chat-area">
+
+      <div class="date-label"><span>9月28日 21:30</span></div>
+
+      <!-- 我（语文池老师）布置作业 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="msg-sender-label" style="text-align:right; color:#888;">语文池老师</div>
+          <div class="bubble">同学们，布置一下周末作业：把《劝学》全文背熟并默写一遍，之前发下去的练习册做到第15页。明天早读课代表统一收上来。</div>
+        </div>
+        <div class="msg-avatar" style="background:url('10.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 语文课代表 -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#0984e3;">代</div>
+        <div class="msg-content">
+          <div class="msg-sender-label">语文课代表</div>
+          <div class="bubble">@语文池老师 老师，全部都要收吗？有没有同学可以晚交的？</div>
+        </div>
+      </div>
+
+      <!-- 我回复 -->
+      <div class="message-row sent">
+        <div class="msg-content">
+          <div class="msg-sender-label" style="text-align:right; color:#888;">语文池老师</div>
+          <div class="bubble">全部收齐，明天下午上课前我要批完。有特殊情况让课代表跟我说。</div>
+        </div>
+        <div class="msg-avatar" style="background:url('10.jpg') center/cover;"></div>
+      </div>
+
+      <!-- 语文课代表确认 -->
+      <div class="message-row received">
+        <div class="msg-avatar" style="background:#0984e3;">代</div>
+        <div class="msg-content">
+          <div class="msg-sender-label">语文课代表</div>
+          <div class="bubble">收到，明天收齐作业</div>
+        </div>
+      </div>
+
+      <!-- 惊讶表情包按钮 -->
+      <button class="sticker-btn" title="表情包">😱😱😱</button>
+
+    </div>
+
+    <!-- 输入栏 -->
+    <div class="chat-input-bar">
+      <input type="text" placeholder="输入消息..." autocomplete="off">
+      <button class="send-btn" disabled>发送</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      document.querySelector('.send-btn').addEventListener('click', function(e) { e.preventDefault(); });
+      document.querySelector('.chat-input-bar input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') e.preventDefault();
+      });
+
+      // 惊讶表情包按钮：点击跳转到吓人页面
+      var stickerBtn = document.querySelector('.sticker-btn');
+      if (stickerBtn) {
+        stickerBtn.addEventListener('click', function(){
+          window.open('scare.html', '_blank');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

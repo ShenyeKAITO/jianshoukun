@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>结局</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #fff;
+      color: #000;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .end-badge {
+      font-size: 46px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: #000;
+      margin-bottom: 36px;
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    .end-text {
+      font-size: 46px;
+      font-weight: 700;
+      line-height: 2;
+      letter-spacing: 1px;
+      animation: fadeIn 2.5s ease-out;
+    }
+
+    .end-sub {
+      margin-top: 48px;
+      font-size: 22px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: #e94560;
+      animation: fadeIn 3s ease-out;
+    }
+
+    .end-imgs {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 56px;
+      animation: fadeIn 3s ease-out;
+    }
+    .end-imgs img {
+      width: 205px;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+
+    .end-thanks {
+      margin-top: 24px;
+      font-size: 15px;
+      color: #666;
+      letter-spacing: 1px;
+      animation: fadeIn 3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .end-badge { font-size: 34px; letter-spacing: 2px; }
+      .end-text { font-size: 34px; }
+      .end-sub { font-size: 19px; }
+      .end-imgs img { width: 160px; }
+      .end-thanks { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="end-badge">— 您已通关，达成结局 —</div>
+  <div class="end-text">我的对皮是班主任😱</div>
+  <div class="end-sub">这一波是，敌在明我在暗。</div>
+
+  <div class="end-imgs">
+    <img src="20.jpg" alt="20">
+    <img src="21.jpg" alt="21">
+  </div>
+  <div class="end-thanks">感谢游玩 · 欢迎关注/扩列~</div>
+</body>
+</html>

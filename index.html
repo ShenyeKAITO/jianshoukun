@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>捡到了对皮的手机？</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #0d0d1a;
+      color: #eee;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 20px;
+      text-align: center;
+      background: #0d0d1a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .content {
+      max-width: 600px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== 标题 ===== */
+    .title {
+      font-size: 48px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+      letter-spacing: 4px;
+    }
+
+    .title .highlight {
+      background: linear-gradient(135deg, #e94560, #ff6b81);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #e94560;
+      letter-spacing: 6px;
+      margin-bottom: 40px;
+      font-weight: 400;
+    }
+
+    /* ===== 简介 ===== */
+    .intro {
+      font-size: 16px;
+      line-height: 2;
+      color: #a0a0b0;
+      margin-bottom: 48px;
+      padding: 0 20px;
+    }
+
+    .intro p {
+      margin-bottom: 8px;
+    }
+
+    /* ===== 开始按钮 ===== */
+    .btn-start {
+      background: linear-gradient(135deg, #e94560, #d63851);
+      color: #fff;
+      padding: 16px 60px;
+      font-size: 20px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 4px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 25px rgba(233, 69, 96, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-start::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn-start:hover {
+      background: linear-gradient(135deg, #ff6b81, #e94560);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 35px rgba(233, 69, 96, 0.5);
+    }
+
+    .btn-start:hover::after {
+      opacity: 1;
+    }
+
+    .btn-start:active {
+      transform: translateY(0);
+    }
+
+    .browser-hint {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #666;
+      letter-spacing: 1px;
+    }
+
+    .version {
+      position: fixed;
+      bottom: 20px;
+      font-size: 11px;
+      color: #555;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 480px) {
+      .title { font-size: 34px; letter-spacing: 3px; }
+      .subtitle { font-size: 13px; letter-spacing: 4px; }
+      .intro { font-size: 14px; padding: 0 10px; }
+      .btn-start { padding: 14px 40px; font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="content">
+    <h1 class="title">捡到了<span class="highlight">对皮</span>的手机？</h1>
+
+    <div class="intro">
+      <p>你是谢砚，一个刚升入高一，沉迷blc的语擦女。</p>
+      <p>一天午休时，你在操场上捡到一只手机。</p>
+      <p>打开后发现这居然是你对皮的手机？！</p>
+      <p>&nbsp;</p>
+      <p>为了防止手机被收走，</p>
+      <p>你决定凭自己的力量找到对皮是谁，并把手机还给她。</p>
+    </div>
+
+    <button class="btn-start" id="startBtn">开 始 游 戏</button>
+    <div class="browser-hint">建议使用浏览器打开<br>与前作互相独立，可独立游玩</div>
+  </div>
+
+  <div class="version">v1.0 · 捡到了对皮的手机？</div>
+
+  <script>
+    // ===== 轻量版 GameState =====
+    var GS = {
+      init: function() {
+        if (!this.get('clues')) this.set('clues', []);
+        if (!this.get('unlockedPages')) this.set('unlockedPages', ['index']);
+        if (!this.get('gameStarted')) this.set('gameStarted', false);
+        if (!this.get('systemUnlocked')) this.set('systemUnlocked', false);
+      },
+      get: function(key) {
+        try { return JSON.parse(localStorage.getItem('game2_' + key)); } catch { return null; }
+      },
+      set: function(key, value) {
+        localStorage.setItem('game2_' + key, JSON.stringify(value));
+      },
+      unlockPage: function(pageId) {
+        var unlocked = this.get('unlockedPages') || [];
+        if (!unlocked.includes(pageId)) {
+          unlocked.push(pageId);
+          this.set('unlockedPages', unlocked);
+        }
+      }
+    };
+
+    document.getElementById('startBtn').addEventListener('click', function() {
+      GS.init();
+      if (!GS.get('gameStarted')) {
+        GS.set('gameStarted', true);
+        GS.unlockPage('hidden_desktop');
+      }
+      var win = window.open('hidden_desktop.html', '_blank');
+      if (!win) {
+        alert('弹窗被浏览器拦截了！请允许此网站弹窗。\n\n也可手动打开：hidden_desktop.html');
+      }
+    });
+
+    // 键盘快捷键：回车也可以开始
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('startBtn').click();
+      }
+    });
+  </script>
+</body>
+</html>

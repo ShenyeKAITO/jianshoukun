@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>《沉石与火舌》推荐</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #f5f5f5;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #f5f5f5;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    .header {
+      background: #fff;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header .back {
+      font-size: 22px; color: #555; cursor: pointer;
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      transition: background 0.15s;
+    }
+    .header .back:hover { background: #f0f0f0; }
+    .header .info { flex: 1; }
+    .header .info .name { font-size: 16px; font-weight: 700; color: #333; }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+    }
+
+    .book-cover {
+      background: linear-gradient(135deg, #2d3436, #1a1a1a);
+      padding: 28px 24px 22px;
+      text-align: center;
+    }
+    .book-cover .cover-box {
+      width: 92px; height: 128px;
+      margin: 0 auto 14px;
+      background: linear-gradient(160deg, #4a4a4a, #222);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #e8e8e8;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    }
+    .book-cover .cover-box .ct1 { font-size: 16px; font-weight: 700; letter-spacing: 3px; }
+    .book-cover .cover-box .ct2 { font-size: 10px; margin-top: 8px; letter-spacing: 1px; opacity: 0.8; }
+    .book-cover .book-title { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 2px; }
+    .book-cover .book-author { font-size: 12px; color: #aaa; margin-top: 6px; }
+
+    .book-meta {
+      padding: 14px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 12px;
+      color: #999;
+      line-height: 1.9;
+    }
+
+    .book-section {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .book-section .sec-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #2d3436;
+      margin-bottom: 10px;
+      padding-left: 10px;
+      border-left: 3px solid #d4a373;
+    }
+    .book-section .sec-body {
+      font-size: 13px;
+      color: #555;
+      line-height: 2;
+    }
+
+    .poem {
+      background: #faf7f2;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 2;
+      color: #555;
+    }
+    .poem .poem-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #d4a373;
+      margin-bottom: 6px;
+    }
+
+    .recommend-note {
+      padding: 16px 20px 30px;
+    }
+    .recommend-note .note-box {
+      background: #f7f7f7;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #777;
+      line-height: 1.9;
+    }
+    .recommend-note .note-box .from {
+      font-size: 12px;
+      color: #bbb;
+      margin-top: 8px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <div class="header">
+      <div class="back" onclick="window.close()">‹</div>
+      <div class="info">
+        <div class="name">文章推荐</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="book-cover">
+        <div class="cover-box">
+          <span class="ct1">沉石与火舌</span>
+          <span class="ct2">特朗斯特罗姆诗全集</span>
+        </div>
+        <div class="book-title">《沉石与火舌》</div>
+        <div class="book-author">[瑞典] 托马斯·特朗斯特罗姆 著 · 李笠 译</div>
+      </div>
+
+      <div class="book-meta">
+        2011年诺贝尔文学奖得主 · 南京大学出版社 2020年出版<br>
+        收录诗人自1954年以来的十三部诗集全部诗作
+      </div>
+
+      <div class="book-section">
+        <div class="sec-title">关于本书</div>
+        <div class="sec-body">
+          托马斯·特朗斯特罗姆，瑞典诗人，2011年诺贝尔文学奖得主，被誉为"当代欧洲诗坛最杰出的象征主义和超现实主义大师"。他的诗歌凝练、透彻，善用意象与隐喻，在互不关联的事物之间建立起微妙的联系。诺贝尔授奖词称他"用凝练、透彻的意象，为我们打开通往真相的新径"。<br><br>
+          "沉石与火舌"——书名象征诗歌冷静外表下的生命张力，呼应诗人"醒着的梦"的创作理念：诗不是表达瞬息情绪，而是让更真实的世界在瞬息消失后持续、整体地显现。
+        </div>
+      </div>
+
+      <div class="book-section">
+        <div class="sec-title">部分诗句</div>
+
+        <div class="poem">
+          <div class="poem-name">《序曲》（开篇）</div>
+          醒，是梦中往外跳伞。<br>
+          摆脱令人窒息的旋涡<br>
+          漫游者向早晨绿色的地带降落。<br>
+          万物燃烧。他察觉——用云雀的<br>
+          飞翔姿态——强大的树根<br>
+          在底下甩动着灯盏……
+        </div>
+
+        <div class="poem">
+          <div class="poem-name">《尾声》</div>
+          我像一只抓钩在世界的底部拖滑，<br>
+          抓住的，都不是我要的。<br>
+          疲惫的愤怒，灼烧的妥协。<br>
+          刽子手抓起石头，上帝在沙上书写。<br><br>
+          静谧的房间。<br>
+          家具在月光中展翅欲飞。<br>
+          穿过一座手无寸铁的森林<br>
+          我慢慢走入我自己。
+        </div>
+
+        <div class="poem">
+          <div class="poem-name">《黑色明信片》</div>
+          一<br>
+          台历已经写满，未来难测。<br>
+          电缆哼着没有祖国的民歌。<br>
+          雪落在铅静的海上。阴影<br>
+          在码头上格斗。<br><br>
+          二<br>
+          生活中，死亡有时会上门<br>
+          丈量人体。拜访被遗忘<br>
+          生活依旧在喧嚣。而寿衣<br>
+          在无声中制成。
+        </div>
+
+        <div class="poem">
+          <div class="poem-name">《半完成的天空》（节选）</div>
+          每个人都是一扇半开的门<br>
+          通向一间共有的房间。<br>
+          无垠的大地在我们脚下。<br>
+          水在树间闪烁。<br>
+          湖泊是朝大地开着的窗户。
+        </div>
+
+      </div>
+
+      <div class="recommend-note">
+        <div class="note-box">
+          "诗是对事物的感受，不是再认识，而是幻想。一首诗是我让它醒着的梦。诗最重要的任务是塑造精神生活，揭示神秘。"<br><br>
+          很喜欢这本书，推荐给同样喜欢文字的朋友。
+          <div class="from">—— 空友C · 分享</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

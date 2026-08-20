@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>扫雷</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    /* ===== 通用容器 ===== */
+    .screen {
+      flex: 1;
+      display: none;
+      flex-direction: column;
+    }
+    .screen.active { display: flex; }
+
+    /* ===== 教程页 ===== */
+    .tut-screen {
+      background: #2c3e50;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 24px;
+      position: relative;
+    }
+    .tut-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      animation: fadeUp 0.5s ease-out;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .tut-card .tut-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .tut-card .tut-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .tut-card .tut-sub {
+      font-size: 13px;
+      color: #999;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .tut-card .tut-body {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.8;
+    }
+    .tut-card .tut-body .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 28px);
+      grid-template-rows: repeat(5, 28px);
+      gap: 2px;
+      margin: 10px auto;
+      width: fit-content;
+    }
+    .tut-card .tut-body .demo-grid span {
+      background: #c0c0c0;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #999;
+      border-right: 2px solid #999;
+    }
+    .tut-card .tut-body .demo-grid span.rev {
+      background: #d1d5db;
+      border: 1px solid #bbb;
+    }
+    .tut-card .tut-body .demo-grid span.mine {
+      background: #e74c3c;
+      color: #fff;
+      border: 1px solid #bbb;
+    }
+    .tut-card .tut-body .demo-grid span.flag {
+      background: #f1c40f;
+      border: 1px solid #bbb;
+    }
+    .tut-card .tut-body .highlight {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    .tut-step {
+      display: none;
+    }
+    .tut-step.active { display: block; }
+    .tut-dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin: 14px 0 10px;
+    }
+    .tut-dots span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ddd;
+      transition: background 0.3s;
+    }
+    .tut-dots span.active { background: #2c3e50; width: 22px; border-radius: 4px; }
+    .tut-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      background: #2c3e50;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .tut-btn:hover { background: #34495e; }
+    .tut-btn:active { background: #1a252f; }
+    .skip-btn {
+      position: absolute;
+      top: 14px;
+      right: 16px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 6px 10px;
+    }
+    .skip-btn:hover { color: rgba(255,255,255,0.8); }
+
+    /* ===== 模式选择页 ===== */
+    .mode-screen {
+      background: #f0f2f5;
+      align-items: center;
+      padding: 30px 20px;
+    }
+    .mode-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 4px;
+    }
+    .mode-sub {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 24px;
+    }
+    .mode-list {
+      width: 100%;
+      max-width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .mode-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px 20px;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .mode-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .mode-card:active { transform: scale(0.98); }
+    .mode-card .mode-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .mode-card .mode-icon.classic { background: #dfe6e9; }
+    .mode-card .mode-icon.challenge { background: #ffeaa7; }
+    .mode-card .mode-icon.secret { background: #2d3436; color: #fff; }
+
+    /* secret模式棋盘两色交叉（浅透红蓝，每个2×2区域同色，仅揭开后显示） */
+    .secret-board .cell.revealed.sc0 { background: rgba(255, 235, 59, 0.18); border-color: rgba(224, 204, 48, 0.18); }
+    .secret-board .cell.revealed.sc1 { background: rgba(76, 175, 80, 0.18); border-color: rgba(56, 142, 60, 0.18); }
+    .mode-card .mode-info { flex: 1; }
+    .mode-card .mode-info .mode-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .mode-card .mode-info .mode-desc {
+      font-size: 12px;
+      color: #999;
+      margin-top: 2px;
+    }
+    .mode-card .mode-arrow {
+      font-size: 18px;
+      color: #ccc;
+    }
+
+    /* ===== 关卡选择页 ===== */
+    .level-screen {
+      background: #f0f2f5;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .level-screen .ls-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .level-screen .ls-header .ls-back {
+      font-size: 22px; color: #555; cursor: pointer;
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; margin-right: 6px;
+    }
+    .level-screen .ls-header .ls-back:hover { background: #e0e0e0; }
+    .level-screen .ls-header .ls-title {
+      font-size: 20px; font-weight: 700; color: #1a1a1a; flex: 1;
+    }
+    .level-screen .ls-header .ls-progress {
+      font-size: 12px; color: #999;
+    }
+    .level-list {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .level-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform 0.15s;
+    }
+    .level-card.unlocked { cursor: pointer; }
+    .level-card.unlocked:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+    .level-card.unlocked:active { transform: scale(0.98); }
+    .level-card.locked { opacity: 0.5; cursor: not-allowed; }
+    .level-card.completed { opacity: 0.75; cursor: default; }
+    .level-card .lv-num {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; flex-shrink: 0;
+    }
+    .level-card.unlocked .lv-num { background: #ffeaa7; color: #2d3436; }
+    .level-card.completed .lv-num { background: #55efc4; color: #fff; }
+    .level-card.locked .lv-num { background: #dfe6e9; color: #b0b0b0; }
+    .level-card .lv-info { flex: 1; }
+    .level-card .lv-info .lv-name {
+      font-size: 15px; font-weight: 700; color: #1a1a1a;
+    }
+    .level-card .lv-info .lv-desc {
+      font-size: 12px; color: #999; margin-top: 2px;
+    }
+    .level-card .lv-status {
+      font-size: 20px; flex-shrink: 0;
+    }
+
+    /* ===== 游戏页 ===== */
+    .game-header {
+      background: #fff;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .game-header .title { font-size: 16px; font-weight: 700; color: #333; flex: 1; }
+    .game-header .title span { font-size: 12px; font-weight: 400; color: #999; margin-left: 6px; }
+    .game-header .back-mode {
+      font-size: 12px; color: #999; cursor: pointer; padding: 4px 10px;
+      border-radius: 10px; transition: background 0.15s; white-space: nowrap;
+    }
+    .game-header .back-mode:hover { background: #f0f0f0; color: #555; }
+    .game-header .back-mode:active { background: #e0e0e0; }
+
+    .game-body {
+      flex: 1;
+      background: #f8f8f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 280px;
+      margin-bottom: 12px;
+      background: #e0e0e0;
+      padding: 8px 14px;
+      border-radius: 6px;
+    }
+    .top-bar .counter {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e94560;
+      font-family: monospace;
+      background: #1a1a1a;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 2px;
+      min-width: 40px;
+      text-align: center;
+    }
+    .top-bar .reset {
+      font-size: 24px;
+      cursor: pointer;
+      background: #f0c040;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center; justify-content: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      user-select: none;
+    }
+    .top-bar .reset:active { box-shadow: none; transform: translateY(1px); }
+    .top-bar .level-display {
+      font-size: 13px;
+      color: #555;
+      font-weight: 600;
+    }
+
+    .board-wrap {
+      display: flex;
+      justify-content: center;
+    }
+    .board {
+      display: inline-grid;
+      gap: 1px;
+      background: #bbb;
+      border: 2px solid #999;
+      border-radius: 4px;
+    }
+    .cell {
+      width: 30px; height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #c0c0c0;
+      border: none;
+      user-select: none;
+      transition: background 0.1s;
+    }
+    .cell.hidden {
+      background: #c0c0c0;
+      border-top: 2px solid #fff;
+      border-left: 2px solid #fff;
+      border-bottom: 2px solid #999;
+      border-right: 2px solid #999;
+    }
+    .cell.hidden:active {
+      background: #aaa;
+      border: 1px solid #888;
+    }
+    .cell.revealed {
+      background: #d1d5db;
+      border: 1px solid #bbb;
+    }
+    .cell.n1 { color: #2980b9; }
+    .cell.n2 { color: #27ae60; }
+    .cell.n3 { color: #e74c3c; }
+    .cell.n4 { color: #8e44ad; }
+    .cell.n5 { color: #d35400; }
+    .cell.n6 { color: #16a085; }
+    .cell.n7 { color: #2c3e50; }
+    .cell.n8 { color: #7f8c8d; }
+    .cell.mine { background: #e74c3c; color: #fff; }
+    .cell.flagged { background: #f1c40f; }
+
+    .msg-area {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #888;
+      text-align: center;
+      min-height: 20px;
+    }
+    .msg-area.win { color: #27ae60; font-weight: 700; }
+    .msg-area.lose { color: #e74c3c; font-weight: 700; }
+
+    /* ===== 闯关模式通关页 ===== */
+    .level-clear {
+      background: rgba(0,0,0,0.7);
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .level-clear.show { display: flex; }
+    .level-clear .card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      text-align: center;
+      max-width: 280px;
+      animation: fadeUp 0.4s ease-out;
+    }
+    .level-clear .card .big { font-size: 42px; margin-bottom: 8px; }
+    .level-clear .card .title { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+    .level-clear .card .sub { font-size: 13px; color: #999; margin-bottom: 16px; }
+    .level-clear .card .lvl-btn {
+      display: block;
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+    .level-clear .card .lvl-btn.primary { background: #27ae60; color: #fff; }
+    .level-clear .card .lvl-btn.primary:hover { background: #219150; }
+    .level-clear .card .lvl-btn.secondary { background: #f0f2f5; color: #555; }
+    .level-clear .card .lvl-btn.secondary:hover { background: #e0e0e0; }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <!-- ========== 教程页 ========== -->
+    <div class="screen tut-screen active" id="tutScreen">
+      <button class="skip-btn" id="tutSkip">跳过 ›</button>
+      <div class="tut-card">
+        <div class="tut-icon">💣</div>
+        <div class="tut-title">扫雷</div>
+        <div class="tut-sub">经典益智小游戏</div>
+
+        <!-- 第1步 -->
+        <div class="tut-step active" data-step="0">
+          <div class="tut-body">
+            <strong>欢迎来到扫雷！</strong><br>
+            游戏中藏有若干颗 💣 地雷。<br>
+            你的目标是 <strong>揭开所有安全格子</strong>，避开地雷。
+          </div>
+        </div>
+
+        <!-- 第2步 -->
+        <div class="tut-step" data-step="1">
+          <div class="tut-body">
+            <strong>点击揭开格子</strong><br>
+            点击一个格子，如果下面是数字，表示它周围8格中有几颗雷。<br><br>
+            <div class="demo-grid">
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span class="rev n1">1</span><span class="rev n1">1</span><span class="rev n1">1</span><span></span>
+              <span></span><span class="rev"> </span><span class="rev mine">💣</span><span class="rev"> </span><span></span>
+              <span></span><span class="rev n1">1</span><span class="rev n1">1</span><span class="rev n1">1</span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <br>
+            比如数字 <strong class="highlight">1</strong> 代表周围有1颗雷。
+          </div>
+        </div>
+
+        <!-- 第3步 -->
+        <div class="tut-step" data-step="2">
+          <div class="tut-body">
+            <strong>标记地雷 🚩</strong><br>
+            觉得某格是雷？<strong>长按</strong> 或 <strong>右键</strong> 插旗标记。<br><br>
+            <div class="demo-grid">
+              <span></span><span></span><span></span><span></span><span></span>
+              <span></span><span class="rev n1">1</span><span class="flag">🚩</span><span class="rev n1">1</span><span></span>
+              <span></span><span class="rev n1">1</span><span class="rev"> </span><span class="rev n1">1</span><span></span>
+              <span></span><span class="flag">🚩</span><span class="rev n1">1</span><span class="rev"> </span><span></span>
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <br>
+            插旗后数字周围雷数减少，方便推理。
+          </div>
+        </div>
+
+        <!-- 第4步 -->
+        <div class="tut-step" data-step="3">
+          <div class="tut-body">
+            <strong>通关条件</strong><br>
+            揭开所有安全格子 <strong>即获胜</strong> 🎉<br>
+            踩到地雷 💥 则游戏结束。<br><br>
+            <strong>准备好了吗？</strong>
+          </div>
+        </div>
+
+        <div class="tut-dots" id="tutDots">
+          <span class="active"></span><span></span><span></span><span></span>
+        </div>
+        <button class="tut-btn" id="tutNext">下一步</button>
+      </div>
+    </div>
+
+    <!-- ========== 模式选择页 ========== -->
+    <div class="screen mode-screen" id="modeScreen">
+      <div class="mode-title">选择模式</div>
+      <div class="mode-sub">想怎么玩？</div>
+      <div class="mode-list">
+        <div class="mode-card" data-mode="classic">
+          <div class="mode-icon classic">💣</div>
+          <div class="mode-info">
+            <div class="mode-name">经典模式</div>
+            <div class="mode-desc">标准扫雷，9×9 · 10颗雷</div>
+          </div>
+          <span class="mode-arrow">›</span>
+        </div>
+        <div class="mode-card" data-mode="challenge">
+          <div class="mode-icon challenge">🚩</div>
+          <div class="mode-info">
+            <div class="mode-name">闯关模式</div>
+            <div class="mode-desc">逐关挑战，难度递增</div>
+          </div>
+          <span class="mode-arrow">›</span>
+        </div>
+        <div class="mode-card" data-mode="secret">
+          <div class="mode-icon secret">❓</div>
+          <div class="mode-info">
+            <div class="mode-name">secret模式</div>
+            <div class="mode-desc">固定雷位，6×6 · 4颗雷</div>
+          </div>
+          <span class="mode-arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 关卡选择页（闯关模式） ========== -->
+    <div class="screen level-screen" id="levelScreen">
+      <div class="ls-header">
+        <span class="ls-back" id="lsBack">‹</span>
+        <span class="ls-title">🚩 闯关模式</span>
+        <span class="ls-progress" id="lsProgress">0/4</span>
+      </div>
+      <div class="level-list" id="levelList">
+        <!-- JS动态生成 -->
+      </div>
+    </div>
+
+    <!-- ========== 游戏页 ========== -->
+    <div class="screen" id="gameScreenWrapper">
+      <div class="game-header">
+        <div class="title" id="gameTitle">💣 扫雷 <span id="modeTag">经典模式</span></div>
+        <span class="back-mode" id="backToModeBtn">选模式 ›</span>
+      </div>
+      <div class="game-body">
+        <div class="top-bar">
+          <div class="counter" id="mineCounter">000</div>
+          <div class="reset" id="resetBtn">🙂</div>
+        </div>
+        <div class="board-wrap">
+          <div class="board" id="board"></div>
+        </div>
+        <div class="msg-area" id="statusMsg">点击格子揭开，右键/长按左键插旗 🚩</div>
+      </div>
+
+      <!-- 闯关通关弹窗 -->
+      <div class="level-clear" id="levelClear">
+        <div class="card">
+          <div class="big">🎉</div>
+          <div class="title" id="clearTitle">第 1 关 通过！</div>
+          <div class="sub" id="clearSub">太棒了，继续下一关吧！</div>
+          <button class="lvl-btn primary" id="clearNext">下一关</button>
+          <button class="lvl-btn secondary" id="clearBack">返回选模式</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    (function(){
+      // ============ 教程 ============
+      let tutStep = 0;
+      const TUT_STEPS = 4;
+      const tutSteps = document.querySelectorAll('.tut-step');
+      const tutDots = document.querySelectorAll('#tutDots span');
+      const tutNext = document.getElementById('tutNext');
+      const tutSkip = document.getElementById('tutSkip');
+
+      function showTutStep(n) {
+        tutSteps.forEach((el, i) => el.classList.toggle('active', i === n));
+        tutDots.forEach((el, i) => el.classList.toggle('active', i === n));
+        if (n === TUT_STEPS - 1) {
+          tutNext.textContent = '开始游戏';
+        } else {
+          tutNext.textContent = '下一步';
+        }
+      }
+
+      tutNext.addEventListener('click', function() {
+        if (tutStep < TUT_STEPS - 1) {
+          tutStep++;
+          showTutStep(tutStep);
+        } else {
+          showScreen('modeScreen');
+        }
+      });
+
+      tutSkip.addEventListener('click', function() {
+        showScreen('modeScreen');
+      });
+
+      // ============ 页面切换 ============
+      function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+      }
+
+      // ============ 模式选择 ============
+      let currentMode = 'classic';
+      let currentLevel = 1;
+      const MODE_CONFIG = {
+        classic: { rows: 9, cols: 9, mines: 10, label: '经典模式' },
+        secret: { rows: 6, cols: 6, mines: 4, label: 'secret模式' },
+      };
+      // secret模式固定雷位（0-indexed: [行, 列]）
+      const SECRET_MINES = [[0,2], [1,5], [4,3], [3,0]];
+      // 闯关模式4个固定关卡
+      const CHALLENGE_LEVELS = [
+        { rows: 6, cols: 6, mines: 5 },
+        { rows: 9, cols: 9, mines: 12 },
+        { rows: 12, cols: 12, mines: 25 },
+        { rows: 15, cols: 15, mines: 45 },
+      ];
+      let levelsCompleted = []; // 已通关的关卡索引
+
+      document.querySelectorAll('.mode-card').forEach(card => {
+        card.addEventListener('click', function() {
+          currentMode = this.dataset.mode;
+          if (currentMode === 'challenge') {
+            renderLevelSelect();
+            showScreen('levelScreen');
+          } else {
+            currentLevel = 1;
+            startGame();
+          }
+        });
+      });
+
+      // 渲染secret模式九宫格背板
+      // 渲染关卡选择
+      function renderLevelSelect() {
+        const list = document.getElementById('levelList');
+        list.innerHTML = '';
+        const prog = document.getElementById('lsProgress');
+        prog.textContent = levelsCompleted.length + '/' + CHALLENGE_LEVELS.length;
+
+        CHALLENGE_LEVELS.forEach((lvl, i) => {
+          const idx = i + 1;
+          const done = levelsCompleted.includes(idx);
+          const unlocked = idx === 1 || levelsCompleted.includes(idx - 1);
+          const card = document.createElement('div');
+          card.className = 'level-card' + (done ? ' completed' : unlocked ? ' unlocked' : ' locked');
+
+          const numDiv = document.createElement('div');
+          numDiv.className = 'lv-num';
+          numDiv.textContent = idx;
+
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'lv-info';
+          const nameDiv = document.createElement('div');
+          nameDiv.className = 'lv-name';
+          nameDiv.textContent = '第' + idx + '关';
+          const descDiv = document.createElement('div');
+          descDiv.className = 'lv-desc';
+          descDiv.textContent = lvl.rows + '×' + lvl.cols + ' · ' + lvl.mines + '颗雷';
+          infoDiv.appendChild(nameDiv);
+          infoDiv.appendChild(descDiv);
+
+          const statusSpan = document.createElement('span');
+          statusSpan.className = 'lv-status';
+          statusSpan.textContent = done ? '✅' : unlocked ? '›' : '🔒';
+
+          card.appendChild(numDiv);
+          card.appendChild(infoDiv);
+          card.appendChild(statusSpan);
+
+          if (unlocked && !done) {
+            card.addEventListener('click', function() {
+              currentLevel = idx;
+              startGame();
+            });
+          }
+
+          list.appendChild(card);
+        });
+      }
+
+      // 关卡选择返回
+      document.getElementById('lsBack').addEventListener('click', function() {
+        showScreen('modeScreen');
+      });
+
+      // ============ 游戏逻辑 ============
+      let rows, cols, totalMines;
+      let board, revealed, flagged, gameOver, minesPlaced;
+
+      function startGame() {
+        let rowsCfg, colsCfg, minesCfg, labelCfg;
+        if (currentMode === 'challenge') {
+          const lvl = CHALLENGE_LEVELS[currentLevel - 1];
+          rowsCfg = lvl.rows; colsCfg = lvl.cols; minesCfg = lvl.mines;
+          labelCfg = '闯关模式';
+        } else {
+          const cfg = MODE_CONFIG[currentMode];
+          rowsCfg = cfg.rows; colsCfg = cfg.cols; minesCfg = cfg.mines;
+          labelCfg = cfg.label;
+        }
+        rows = rowsCfg; cols = colsCfg; totalMines = minesCfg;
+        document.getElementById('modeTag').textContent = labelCfg + (currentMode === 'challenge' ? ' · 第' + currentLevel + '关' : '');
+        showScreen('gameScreenWrapper');
+        initBoard();
+      }
+
+      function initBoard() {
+        board = []; revealed = []; flagged = [];
+        gameOver = false; minesPlaced = false;
+        for (let r = 0; r < rows; r++) {
+          board[r] = []; revealed[r] = []; flagged[r] = [];
+          for (let c = 0; c < cols; c++) {
+            board[r][c] = 0; revealed[r][c] = false; flagged[r][c] = false;
+          }
+        }
+        // 不在这里布雷，等首次点击后再布雷
+        document.getElementById('levelClear').classList.remove('show');
+        render();
+        document.getElementById('statusMsg').textContent = '点击格子揭开，右键/长按左键插旗 🚩';
+        document.getElementById('statusMsg').className = 'msg-area';
+        document.getElementById('resetBtn').textContent = '🙂';
+      }
+
+      function placeMinesAvoiding(clickR, clickC) {
+        if (minesPlaced) return;
+        minesPlaced = true;
+
+        if (currentMode === 'secret') {
+          // secret模式：固定雷位
+          SECRET_MINES.forEach(function(pos) {
+            board[pos[0]][pos[1]] = -1;
+          });
+        } else {
+          // 其他模式：随机布雷，避开点击位置 + 周围8格
+          const forbidden = new Set();
+          for (let dr = -1; dr <= 1; dr++)
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = clickR + dr, nc = clickC + dc;
+              if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                forbidden.add(nr * cols + nc);
+              }
+            }
+          let placed = 0;
+          while (placed < totalMines) {
+            let r = Math.floor(Math.random() * rows);
+            let c = Math.floor(Math.random() * cols);
+            const key = r * cols + c;
+            if (board[r][c] !== -1 && !forbidden.has(key)) { board[r][c] = -1; placed++; }
+          }
+        }
+
+        // 计算数字
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (board[r][c] === -1) continue;
+            let cnt = 0;
+            for (let dr = -1; dr <= 1; dr++)
+              for (let dc = -1; dc <= 1; dc++) {
+                let nr = r+dr, nc = c+dc;
+                if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc] === -1) cnt++;
+              }
+            board[r][c] = cnt;
+          }
+        }
+      }
+
+      function render() {
+        const el = document.getElementById('board');
+        el.className = 'board' + (currentMode === 'secret' ? ' secret-board' : '');
+        el.style.gridTemplateColumns = 'repeat(' + cols + ', 30px)';
+        el.style.gridTemplateRows = 'repeat(' + rows + ', 30px)';
+        el.innerHTML = '';
+        let remaining = totalMines;
+        for (let r = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++)
+            if (flagged[r][c]) remaining--;
+        document.getElementById('mineCounter').textContent = String(Math.max(0, remaining)).padStart(3, '0');
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell hidden';
+            cell.dataset.r = r; cell.dataset.c = c;
+            // secret模式：2×2块两色交叉（先存下颜色索引）
+            var scClass = '';
+            if (currentMode === 'secret') {
+              scClass = ' sc' + ((Math.floor(r/2) + Math.floor(c/2)) % 2);
+              cell.className += scClass;
+            }
+            if (flagged[r][c]) {
+              cell.className = 'cell flagged' + scClass;
+              cell.textContent = '🚩';
+            } else if (revealed[r][c]) {
+              cell.className = 'cell revealed' + scClass;
+              if (board[r][c] === -1) {
+                cell.textContent = '💣';
+                cell.className = 'cell mine' + scClass;
+              } else if (board[r][c] > 0) {
+                cell.textContent = board[r][c];
+                cell.className += ' n' + board[r][c];
+              }
+            }
+            cell.addEventListener('click', function(e) { handleClick(parseInt(this.dataset.r), parseInt(this.dataset.c)); });
+            cell.addEventListener('contextmenu', function(e) { e.preventDefault(); handleFlag(parseInt(this.dataset.r), parseInt(this.dataset.c)); });
+            let timer;
+            cell.addEventListener('mousedown', function() { if (!gameOver) timer = setTimeout(() => handleFlag(parseInt(this.dataset.r), parseInt(this.dataset.c)), 400); });
+            cell.addEventListener('mouseup', function() { clearTimeout(timer); });
+            cell.addEventListener('mouseleave', function() { clearTimeout(timer); });
+            el.appendChild(cell);
+          }
+        }
+      }
+
+      function handleClick(r, c) {
+        if (gameOver || flagged[r][c] || revealed[r][c]) return;
+        // 首次点击：避开点击位置布雷，保证翻开大片区域
+        if (!minesPlaced) {
+          placeMinesAvoiding(r, c);
+        }
+        reveal(r, c);
+        render();
+        checkWin();
+      }
+
+      function handleFlag(r, c) {
+        if (gameOver || revealed[r][c]) return;
+        flagged[r][c] = !flagged[r][c];
+        render();
+      }
+
+      function reveal(r, c) {
+        if (r < 0 || r >= rows || c < 0 || c >= cols || revealed[r][c] || flagged[r][c]) return;
+        revealed[r][c] = true;
+        if (board[r][c] === -1) {
+          gameOver = true;
+          for (let rr = 0; rr < rows; rr++)
+            for (let cc = 0; cc < cols; cc++)
+              if (board[rr][cc] === -1) revealed[rr][cc] = true;
+          render();
+          document.getElementById('statusMsg').textContent = '💥 踩雷了！';
+          document.getElementById('statusMsg').className = 'msg-area lose';
+          document.getElementById('resetBtn').textContent = '😵';
+          return;
+        }
+        if (board[r][c] === 0) {
+          for (let dr = -1; dr <= 1; dr++)
+            for (let dc = -1; dc <= 1; dc++)
+              if (dr !== 0 || dc !== 0) reveal(r + dr, c + dc);
+        }
+      }
+
+      function checkWin() {
+        let rev = 0;
+        for (let r = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++)
+            if (revealed[r][c]) rev++;
+        if (rev === rows * cols - totalMines) {
+          gameOver = true;
+          for (let r = 0; r < rows; r++)
+            for (let c = 0; c < cols; c++)
+              if (board[r][c] === -1) flagged[r][c] = true;
+          render();
+          document.getElementById('resetBtn').textContent = '😎';
+          if (currentMode === 'challenge') {
+            // 标记通关
+            if (!levelsCompleted.includes(currentLevel)) {
+              levelsCompleted.push(currentLevel);
+            }
+            // 闯关通关弹窗
+            const isLast = currentLevel >= CHALLENGE_LEVELS.length;
+            document.getElementById('clearTitle').textContent = '第 ' + currentLevel + ' 关 通过！';
+            document.getElementById('clearSub').textContent = isLast ? '🎊 恭喜你已经通关全部关卡！' : totalMines + '颗雷全部排除！准备下一关？';
+            document.getElementById('clearNext').textContent = isLast ? '🏆 全部完成' : '下一关';
+            document.getElementById('levelClear').classList.add('show');
+          } else {
+            document.getElementById('statusMsg').textContent = '🎉 你赢了！';
+            document.getElementById('statusMsg').className = 'msg-area win';
+          }
+        }
+      }
+
+      // ============ 按钮事件 ============
+      document.getElementById('resetBtn').addEventListener('click', function() { initBoard(); });
+      document.getElementById('board').addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+
+      // 闯关模式
+      document.getElementById('clearNext').addEventListener('click', function() {
+        if (currentLevel >= CHALLENGE_LEVELS.length) {
+          // 全部通关 → 返回关卡选择
+          document.getElementById('levelClear').classList.remove('show');
+          renderLevelSelect();
+          showScreen('levelScreen');
+          return;
+        }
+        currentLevel++;
+        startGame();
+      });
+      document.getElementById('clearBack').addEventListener('click', function() {
+        document.getElementById('levelClear').classList.remove('show');
+        renderLevelSelect();
+        showScreen('levelScreen');
+      });
+
+      // 游戏中随时返回模式选择
+      document.getElementById('backToModeBtn').addEventListener('click', function() {
+        document.getElementById('levelClear').classList.remove('show');
+        if (currentMode === 'challenge') {
+          renderLevelSelect();
+          showScreen('levelScreen');
+        } else {
+          showScreen('modeScreen');
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>

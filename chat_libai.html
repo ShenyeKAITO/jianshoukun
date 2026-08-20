@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>李白</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #ededed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #ededed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    /* 顶栏：标题居中，无返回箭头 */
+    .header {
+      background: #fff;
+      padding: 10px 16px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .header .title {
+      font-size: 16px; font-weight: 700; color: #333;
+    }
+
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px;
+    }
+    .chat-body::-webkit-scrollbar { width: 3px; }
+    .chat-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+    /* ===== 聊天消息 ===== */
+    .msg-row {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .msg-row.me { justify-content: flex-end; }
+    .msg-ava {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #e5e5e5 center/cover;
+      flex-shrink: 0;
+    }
+    .msg-row.me .msg-ava { margin-left: 10px; }
+    .msg-row.he .msg-ava { margin-right: 10px; }
+    .msg-content {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 280px;
+    }
+    .msg-tag {
+      flex-shrink: 0;
+      background: #e6e6e6;
+      color: #aaa;
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 9px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .msg-bubble {
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 14px;
+      color: #333;
+      line-height: 1.6;
+      background: #fff;
+      max-width: 240px;
+    }
+    .msg-row.me .msg-bubble {
+      background: #95ec69;
+    }
+    .msg-row .msg-bubble.gray {
+      background: #cfcfcf;
+    }
+    .msg-time {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin: 4px 0 14px;
+      line-height: 1;
+    }
+
+    /* ===== 输入栏上方：上皮说 / 本人说 ===== */
+    .speak-switch {
+      display: flex;
+      align-self: flex-start;
+      background: #fff;
+      border-radius: 8px;
+      padding: 3px;
+      margin: 8px 0 6px 12px;
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+    }
+    .speak-switch .ss-opt {
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #bbb;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .speak-switch .ss-opt.active {
+      background: #4db6ac;
+      color: #fff;
+    }
+
+    /* ===== 输入栏 ===== */
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border-top: 1px solid #e0e0e0;
+      padding: 8px 12px;
+      flex-shrink: 0;
+    }
+    .chat-input-bar input {
+      flex: 1;
+      height: 36px;
+      border: none;
+      background: #f5f5f5;
+      border-radius: 18px;
+      padding: 0 14px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      color: #333;
+    }
+    .chat-input-bar input::placeholder { color: #b0b0b0; }
+    .chat-input-bar .send-btn {
+      height: 36px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 18px;
+      background: #d4a373;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <div class="header">
+      <div class="title">李白</div>
+    </div>
+
+    <div class="chat-body">
+      <div class="msg-time">8月13日12:05</div>
+      <div class="msg-row me">
+        <div class="msg-content">
+          <div class="msg-bubble">熟悉身影映入眼帘，一袭白衣胜雪，眉眼若初见那般淡然疏离。分手是他提的，自己追问了两个月都没得到任何解释，只有一句轻飘飘的不合适，质问、哀求、挽留一时全部卡在喉咙。偶像…你路过吗？</div>
+        </div>
+        <div class="msg-ava" style="background-image:url('11.jpg')"></div>
+      </div>
+
+      <div class="msg-time">8月13日12:28</div>
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#00897b"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">眸亮秋水平，腰别长剑难出鞘，避半步，心念复杂，不忍别目，只怨酒醉人灼心，呛音泠泠。…有什么事吗？</div>
+        </div>
+      </div>
+
+      <div class="msg-time">8月13日12:58</div>
+      <div class="msg-row me">
+        <div class="msg-content">
+          <div class="msg-bubble">少年几近鲁莽的举动，兀自牵过他手放胸口，掌心凉意衬得肌肤燥热、过速心跳正如夏日天边滚滚而来的闷雷，震得胸腔嗡响。您为何要一再躲避我？明明知道我是最、最最喜欢你的！</div>
+        </div>
+        <div class="msg-ava" style="background-image:url('11.jpg')"></div>
+      </div>
+
+      <div class="msg-time">8月13日1:20</div>
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#00897b"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">神思滞，纵他意，酒醒几分，须臾扯掌离，背身蜷指余温存，低眉思忖，语调渐柔掺试探。你对我究竟是对偶像的崇拜…还是对恋人的喜欢，你分得清吗。</div>
+        </div>
+      </div>
+
+      <div class="msg-time">8月13日1:50</div>
+      <div class="msg-row me">
+        <div class="msg-content">
+          <div class="msg-bubble">一双坚毅纯善的眼，满腔热忱皆奉献，既已言尽于此，便也再无退步，索性孤独一掷，攥腕迫近步步紧逼，少见的庄肃，字字情真意切。当然是对恋人啊！正是因为您曾鼓舞了我，现在的我为了你…什么都愿意做！</div>
+        </div>
+        <div class="msg-ava" style="background-image:url('11.jpg')"></div>
+      </div>
+
+      <div class="msg-time">8月13日1:58</div>
+      <div class="msg-row he">
+        <div class="msg-ava" style="background:#00897b"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">暖躯贴，拧身挣扎，寥寥数语，心海起波澜，虎口卡腰侧，长发贴拂面颊，指压他唇角，哪怕是惩罚，眼前人似乎都甘之如饴。是吗？曜 ，你好像说了些不得了的话啊。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="speak-switch">
+      <span class="ss-opt active">上皮说</span>
+      <span class="ss-opt">本人说</span>
+    </div>
+    <div class="chat-input-bar">
+      <input type="text" placeholder="输入消息…">
+      <button class="send-btn">发送</button>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      /* 上皮说 / 本人说 切换（必选一个） */
+      var ssOpts = document.querySelectorAll('.speak-switch .ss-opt');
+      ssOpts.forEach(function(opt){
+        opt.addEventListener('click', function(){
+          ssOpts.forEach(function(o){ o.classList.remove('active'); });
+          this.classList.add('active');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

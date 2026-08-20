@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>个人资料 · QQ</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    .profile-body {
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+    }
+
+    /* ===== 封面 ===== */
+    .cover-section {
+      position: relative;
+      width: 100%;
+      height: 170px;
+      background: url('5.png') center 60% / cover no-repeat;
+    }
+    .cover-section::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.3));
+      pointer-events: none;
+    }
+
+    /* ===== 头像 ===== */
+    .avatar-wrapper {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      margin-top: -46px;
+    }
+    .avatar {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      border: 4px solid #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      background: url('3.jpg') center / cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+    }
+
+    /* ===== 基本信息 ===== */
+    .info-section {
+      text-align: center;
+      padding: 12px 24px 0;
+    }
+    .info-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .nickname {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .online-status {
+      font-size: 12px;
+      color: #07C160;
+      font-weight: 500;
+    }
+    .online-status::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #07C160;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .qq-number {
+      font-size: 13px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    /* ===== 签名 ===== */
+    .signature-section {
+      text-align: center;
+      margin-top: 8px;
+      padding: 0 24px;
+    }
+    .signature-text {
+      font-size: 13px;
+      color: #666;
+      font-style: italic;
+    }
+    .signature-text::before { content: '「'; color: #ccc; }
+    .signature-text::after { content: '」'; color: #ccc; }
+
+    /* ===== 统计 ===== */
+    .stats-section {
+      display: flex;
+      justify-content: center;
+      margin: 14px 24px 0;
+      padding: 12px 0;
+      border-top: 1px solid #f0f2f5;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .stat-item {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+    .stat-item + .stat-item::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 10%;
+      height: 80%; width: 1px;
+      background: #f0f2f5;
+    }
+    .stat-number {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .stat-label {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    /* ===== 详细资料 ===== */
+    .detail-section {
+      padding: 16px 24px 0;
+    }
+    .detail-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+    }
+    .detail-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #555;
+      padding: 5px 0;
+    }
+    .detail-item .label {
+      color: #999;
+      flex-shrink: 0;
+    }
+    .detail-item .value { color: #333; }
+
+    .tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .tag {
+      background: #f0f8f4;
+      color: #07C160;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* ===== 共同群聊 ===== */
+    .common-section {
+      padding: 14px 24px 0;
+    }
+    .common-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 13px;
+      color: #555;
+    }
+    .common-item:last-child { border-bottom: none; }
+    .common-item .icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      background: #e8f5e9;
+    }
+    .common-item .info { flex: 1; }
+    .common-item .info .name { font-size: 13px; color: #333; }
+    .common-item .info .sub { font-size: 11px; color: #bbb; }
+
+    /* ===== 底部按钮 ===== */
+    .btn-section {
+      padding: 14px 24px 24px;
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      flex: 1;
+      padding: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: default;
+      font-family: inherit;
+      text-align: center;
+    }
+    .btn-primary {
+      background: #2196F3;
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      background: #1976D2;
+    }
+    .btn-secondary {
+      background: #f0f2f5;
+      color: #333;
+    }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+      .cover-section { height: 150px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="status">
+    <span class="time">12:15</span>
+    <span>📶 🔋</span>
+  </div>
+
+  <div class="profile-body">
+
+    <!-- 封面 -->
+    <div class="cover-section"></div>
+
+    <!-- 头像 -->
+    <div class="avatar-wrapper">
+      <div class="avatar"></div>
+    </div>
+
+    <!-- 基本信息 -->
+    <div class="info-section">
+      <div class="info-name-row">
+        <span class="nickname">池延</span>
+        <span class="online-status">在线</span>
+      </div>
+      <div class="qq-number">QQ：278963717281</div>
+    </div>
+
+    <!-- 个性签名 -->
+    <div class="signature-section">
+      <span class="signature-text">我与我周旋久，宁作我。</span>
+    </div>
+
+    <!-- 统计 -->
+    <div class="stats-section">
+      <div class="stat-item">
+        <div class="stat-number">12w+</div>
+        <div class="stat-label">空间访问</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">8w+</div>
+        <div class="stat-label">获赞</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">326</div>
+        <div class="stat-label">好友</div>
+      </div>
+    </div>
+
+    <!-- 详细资料 -->
+    <div class="detail-section">
+      <div class="detail-section-title">详细资料</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <span class="label">性别</span>
+          <span class="value">女</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">生日</span>
+          <span class="value">？</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">年龄</span>
+          <span class="value">119岁</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">所在地</span>
+          <span class="value">下海市</span>
+        </div>
+      </div>
+
+      <div class="tags-row">
+        <span class="tag">BLC</span>
+        <span class="tag">0.5</span>
+        <span class="tag">随缘上线</span>
+        <span class="tag">慢热</span>
+      </div>
+    </div>
+
+    <!-- 按钮 -->
+    <div class="btn-section">
+      <button class="btn btn-secondary" style="cursor:default;">💬 发消息</button>
+      <button class="btn btn-primary" id="qzoneBtn" onclick="window.open('qq_qzone.html', '_blank')">📱 进空间</button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

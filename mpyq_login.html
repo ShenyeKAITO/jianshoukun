@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>登录</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+
+    .phone {
+      width: 390px; height: 780px;
+      background: #f0f4fa;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #f0f4fa;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    .login-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 32px 0;
+      overflow-y: auto;
+    }
+
+    .login-body::-webkit-scrollbar { width: 3px; }
+    .login-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+    /* 应用信息 */
+    .app-badge {
+      width: 74px; height: 74px;
+      border-radius: 18px;
+      background: url('2.jpg') center/cover;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      margin-bottom: 16px;
+    }
+    .app-name {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: 1px;
+    }
+    .app-sub {
+      font-size: 13px;
+      color: #999;
+      margin-top: 6px;
+      letter-spacing: 2px;
+    }
+
+    /* QQ登录卡片 */
+    .qq-login-card {
+      width: 100%;
+      margin-top: 44px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+      padding: 22px 20px 20px;
+    }
+    .qq-login-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .qq-login-title .qq-ic {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4fc3f7, #0288d1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .qq-login-title .t {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+    .qq-login-title .t small {
+      font-size: 12px;
+      color: #aaa;
+      font-weight: 400;
+      margin-left: 6px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+    .field label {
+      display: block;
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 6px;
+      padding-left: 2px;
+    }
+    .field input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid #e3e8ef;
+      border-radius: 10px;
+      padding: 0 14px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #333;
+      background: #fafbfd;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .field input:focus {
+      border-color: #12B7F5;
+      background: #fff;
+    }
+    .field input::placeholder { color: #c6ccd4; }
+
+    .login-btn {
+      width: 100%;
+      height: 46px;
+      border: none;
+      border-radius: 23px;
+      background: linear-gradient(135deg, #12B7F5, #0e98d2);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      font-family: inherit;
+      letter-spacing: 3px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(18,183,245,0.3);
+    }
+    .login-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(18,183,245,0.4);
+    }
+    .login-btn:active { transform: scale(0.98); }
+
+    .login-err {
+      font-size: 12px;
+      color: #e94560;
+      margin-top: 10px;
+      min-height: 16px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .login-footer {
+      margin-top: auto;
+      padding: 20px 0 26px;
+      font-size: 11px;
+      color: #b6c0cc;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+    .login-footer .sep { margin: 0 8px; color: #d0d8e2; }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <div class="login-body">
+
+      <div class="app-badge"></div>
+      <div class="app-name">名人朋友圈</div>
+      <div class="app-sub">— QQ 登录 —</div>
+
+      <div class="qq-login-card">
+        <div class="qq-login-title">
+          <div class="qq-ic">Q</div>
+          <span class="t">QQ登录<small>授权后进入</small></span>
+        </div>
+
+        <div class="field">
+          <label>QQ号</label>
+          <input type="text" id="qqInput" placeholder="请输入QQ号" maxlength="20">
+        </div>
+
+        <button class="login-btn" id="loginBtn">登 录</button>
+        <div class="login-err" id="loginErr"></div>
+      </div>
+
+      <div class="login-footer">
+        <span>注册新账号</span><span class="sep">|</span>
+        <span>忘记密码？</span><span class="sep">|</span>
+        <span>帮助</span>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      var input = document.getElementById('qqInput');
+      var err = document.getElementById('loginErr');
+      var btn = document.getElementById('loginBtn');
+
+      var CORRECT_QQ = '278963717281';
+
+      function doLogin() {
+        var v = input.value.trim();
+        if (!v) {
+          err.textContent = '请输入QQ号';
+          return;
+        }
+        if (!/^\d+$/.test(v)) {
+          err.textContent = 'QQ号应为数字';
+          return;
+        }
+        if (v !== CORRECT_QQ) {
+          err.textContent = 'QQ号错误，请重试';
+          return;
+        }
+        // 记住账号，供后续页面读取
+        try { localStorage.setItem('game2_qqid', v); } catch(e) {}
+        window.open('mingren.html', '_blank');
+        window.close();
+      }
+
+      btn.addEventListener('click', doLogin);
+      input.addEventListener('keydown', function(e){
+        if (e.key === 'Enter') doLogin();
+      });
+    })();
+  </script>
+</body>
+</html>

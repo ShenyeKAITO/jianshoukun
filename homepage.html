@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>我的主页</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    /* 顶部栏 */
+    .hp-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    .hp-header .hp-title {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+      text-align: center;
+    }
+
+    .profile-body {
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+    }
+    .profile-body::-webkit-scrollbar { width: 3px; }
+    .profile-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+    /* ===== 封面（每个角色不同） ===== */
+    .cover-section {
+      position: relative;
+      width: 100%;
+      height: 170px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 12px;
+    }
+
+    /* ===== 封面右下角：祝福气泡 + 圆形头像占位 ===== */
+    .bless-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 44px;
+      padding: 0 34px 0 16px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 22px;
+    }
+    .bless-box .ring {
+      font-size: 20px;
+      line-height: 1;
+    }
+    .bless-box .bless-text {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.15;
+    }
+    .bless-box .bless-label {
+      font-size: 10px;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+    .bless-box .bless-num {
+      font-size: 10px;
+      color: #fff;
+      font-weight: 600;
+    }
+    .cover-avatar {
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      margin-left: -25px; /* 左半盖住气泡右侧圆弧 */
+      border: 2px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      background: #a78bfa; /* 占位纯色，稍后换图片 */
+      flex-shrink: 0;
+    }
+
+    /* ===== 头像（左侧，封面下方）+ 昵称 + No. ===== */
+    .avatar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      background: #fff;
+    }
+    .avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      border: 1px solid #fff;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      background: #e5e5e5 center/cover;
+      flex-shrink: 0;
+    }
+    .info {
+      flex: 1;
+      min-width: 0;
+    }
+    .nickname {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .no-line {
+      font-size: 13px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    /* ===== 我的动态 ===== */
+    .hp-feed {
+      background: #fff;
+      padding: 14px 16px;
+      border-top: 8px solid #f4f5f7;
+    }
+    .hp-feed-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    .post-card { margin-bottom: 16px; }
+    .post-card:last-child { margin-bottom: 0; }
+    .post-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .post-ava {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: #e5e5e5 center/cover;
+      flex-shrink: 0;
+    }
+    .post-name { font-size: 15px; font-weight: 600; color: #222; }
+    .post-no { font-size: 11px; color: #999; margin-top: 2px; }
+    .post-time {
+      margin-left: auto;
+      font-size: 11px;
+      color: #bbb;
+    }
+    .post-img {
+      max-width: 240px;
+      width: auto;
+      height: auto;
+      border-radius: 4px;
+      display: block;
+      margin-left: 50px;
+    }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+      .cover-section { height: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="notch"></div>
+
+    <div class="status">
+      <span class="time">12:15</span>
+      <span>📶 🔋</span>
+    </div>
+
+    <div class="hp-header">
+      <div class="hp-title">我的主页</div>
+    </div>
+
+    <div class="profile-body">
+      <!-- 封面 -->
+      <div class="cover-section" id="cover">
+        <!-- 右下角祝福气泡（戒指在左，祝福值/520 竖排两行在右） -->
+        <div class="bless-box">
+          <span class="ring">💍</span>
+          <div class="bless-text">
+            <span class="bless-label">祝福值</span>
+            <span class="bless-num" id="blessNum">520</span>
+          </div>
+        </div>
+        <!-- 圆形头像占位（盖住气泡右端圆弧） -->
+        <div class="cover-avatar" id="hpCoverAvatar"></div>
+      </div>
+
+      <!-- 头像（左侧，封面下方）+ 昵称 + No. -->
+      <div class="avatar-wrapper">
+        <div class="avatar" id="hpAvatar"></div>
+        <div class="info">
+          <div class="nickname" id="hpName"></div>
+          <div class="no-line" id="hpUid"></div>
+        </div>
+      </div>
+
+      <!-- 我的动态（按角色展示） -->
+      <div class="hp-feed" id="hpFeed"></div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      // 每个角色封面不同
+      var COVERS = {
+        '曜':     'linear-gradient(135deg, #4db6ac 0%, #00897b 100%)',
+        '李白':   'linear-gradient(135deg, #ffd54f 0%, #ff8f00 100%)',
+        '路人甲': "url('5.png') center/cover",
+        '路人乙': "url('19.jpg') center/cover",
+        '恋人':   "url('17.jpg') center/cover",
+      };
+
+      // 封面右下角：祝福值、圆形头像颜色也按角色区分
+      var BLESS = {
+        '曜':     520,
+        '李白':   999,
+        '路人甲': 666,
+        '路人乙': 88,
+        '恋人':   1314
+      };
+      var COVER_AVAS = {
+        '曜':     '#00897b',
+        '李白':   '#ff8f00',
+        '路人甲': "url('9.png') center/cover",
+        '路人乙': '#78909c',
+        '恋人':   '#6c5ce7'
+      };
+
+      // 读取当前角色
+      var role = null;
+      try {
+        var idx = parseInt(localStorage.getItem('game2_mpyq_role'), 10);
+        if (!isNaN(idx)) {
+          var ALL = [
+            { name: '曜',     img: '11.jpg', uid: '3728729' },
+            { name: '李白',   img: '12.jpg', uid: '8928738' },
+            { name: '路人甲', img: '3.jpg',  uid: '749382897' },
+            { name: '路人乙', img: '13.jpg', uid: '509421' },
+            { name: '恋人',   img: '14.jpg', uid: '8299012' }
+          ];
+          role = ALL[idx] || ALL[0];
+        }
+      } catch(e) {}
+      if (!role) {
+        role = { name: '曜', img: '11.jpg', uid: '3728729' };
+      }
+
+      document.getElementById('cover').style.background = COVERS[role.name] || 'linear-gradient(135deg, #bdbdbd 0%, #757575 100%)';
+
+      // 封面右下角：祝福值 + 圆形头像按角色显示
+      document.getElementById('blessNum').textContent = BLESS[role.name] != null ? BLESS[role.name] : '0';
+      var coverAva = document.getElementById('hpCoverAvatar');
+      coverAva.style.background = COVER_AVAS[role.name] || '#a78bfa';
+
+      document.getElementById('hpName').textContent = role.name;
+      document.getElementById('hpUid').textContent = 'No.' + role.uid;
+
+      var avatar = document.getElementById('hpAvatar');
+      if (role.color) {
+        avatar.style.backgroundImage = 'none';
+        avatar.style.backgroundColor = role.color;
+      } else {
+        avatar.style.backgroundColor = 'transparent';
+        avatar.style.backgroundImage = "url('" + role.img + "')";
+      }
+
+      // 我的动态：仅展示当前角色已发布的动态（暂无则隐藏整块）
+      var MY_POSTS = {
+        '路人乙': [ { img: '18.jpg', time: '8月21日' } ]
+      };
+      var feed = document.getElementById('hpFeed');
+      var posts = MY_POSTS[role.name];
+      if (posts && posts.length) {
+        var html = '<div class="hp-feed-title">我的动态</div>';
+        posts.forEach(function(p){
+          html += '<div class="post-card">' +
+            '<div class="post-head">' +
+              '<div class="post-ava" style="background-image:url(\'' + (role.img ? role.img : '') + '\')"></div>' +
+              '<div>' +
+                '<div class="post-name">' + role.name + '</div>' +
+                '<div class="post-no">No.' + role.uid + '</div>' +
+              '</div>' +
+              (p.time ? '<div class="post-time">' + p.time + '</div>' : '') +
+            '</div>' +
+            '<img class="post-img" src="' + p.img + '" alt="">' +
+          '</div>';
+        });
+        feed.innerHTML = html;
+      } else {
+        feed.style.display = 'none';
+      }
+    })();
+  </script>
+</body>
+</html>

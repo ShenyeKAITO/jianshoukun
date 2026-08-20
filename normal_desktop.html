@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>主系统</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    .wallpaper {
+      flex: 1;
+      background: linear-gradient(145deg, #e8eaed 0%, #d5d8e0 50%, #e8eaed 100%);
+      padding: 30px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px 16px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .app-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.2s;
+    }
+    .app-icon:hover { transform: scale(1.05); }
+    .app-icon:active { transform: scale(0.95); }
+
+    .app-icon .icon-bg {
+      width: 56px; height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .app-icon .label {
+      font-size: 11px;
+      color: rgba(0,0,0,0.55);
+      letter-spacing: 0.5px;
+    }
+
+    .icon-wechat { background: linear-gradient(135deg, #07c160, #06ad56); }
+    .icon-gray { background: #d0d0d0; }
+
+    .home-bar {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px; height: 4px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 3px;
+    }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+      .app-grid { gap: 20px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="status">
+    <span class="time">12:15</span>
+    <span>📶 🔋</span>
+  </div>
+
+  <div class="wallpaper">
+    <div class="app-grid">
+      <div class="app-icon" id="appWeChat" style="opacity:1; cursor:pointer;">
+        <div class="icon-bg icon-wechat">💚</div>
+        <span class="label">微信</span>
+      </div>
+      <div class="app-icon" style="opacity:0.35; cursor:default;">
+        <div class="icon-bg icon-gray">📷</div>
+        <span class="label">相册</span>
+      </div>
+      <div class="app-icon" style="opacity:0.35; cursor:default;">
+        <div class="icon-bg icon-gray">⚙️</div>
+        <span class="label">设置</span>
+      </div>
+      <div class="app-icon" style="opacity:0.35; cursor:default;">
+        <div class="icon-bg icon-gray">🌐</div>
+        <span class="label">浏览器</span>
+      </div>
+      <div class="app-icon" style="opacity:0.35; cursor:default;">
+        <div class="icon-bg icon-gray">📞</div>
+        <span class="label">电话</span>
+      </div>
+      <div class="app-icon" style="opacity:0.35; cursor:default;">
+        <div class="icon-bg icon-gray">💬</div>
+        <span class="label">短信</span>
+      </div>
+    </div>
+
+    <div class="home-bar"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var GS;
+  try {
+    if (window.opener && window.opener.GS) GS = window.opener.GS;
+    else if (window.GS) GS = window.GS;
+  } catch(e) {}
+  if (!GS) {
+    GS = {
+      get: function(k){ try{return JSON.parse(localStorage.getItem('game2_'+k))}catch(e){return null} },
+      set: function(k,v){ localStorage.setItem('game2_'+k,JSON.stringify(v)) },
+      unlockPage: function(id){ var u=this.get('unlockedPages')||[]; if(!u.includes(id)){u.push(id);this.set('unlockedPages',u)} },
+      addClue: function(id){ var c=this.get('clues')||[]; if(!c.includes(id)){c.push(id);this.set('clues',c)} }
+    };
+  }
+
+  GS.set('systemUnlocked', true);
+  GS.addClue('system_unlocked');
+
+  document.getElementById('appWeChat').addEventListener('click', function(){
+    window.open('wechat.html', '_blank');
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>还手机</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #fff;
+      color: #000;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .story {
+      max-width: 720px;
+      margin-bottom: 16px;
+    }
+
+    .story-line {
+      font-size: 28px;
+      font-weight: 600;
+      line-height: 2;
+      letter-spacing: 1px;
+      margin-bottom: 28px;
+      animation: fadeIn 1.5s ease-out;
+    }
+
+    .story-quote {
+      font-size: 24px;
+      font-weight: 400;
+      line-height: 2;
+      letter-spacing: 1px;
+      color: #333;
+      background: #f5f5f5;
+      border-left: 4px solid #4db6ac;
+      border-radius: 8px;
+      padding: 20px 26px;
+      text-align: left;
+      animation: fadeIn 2.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .btn-next {
+      margin-top: 44px;
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      color: #fff;
+      padding: 14px 56px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 6px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 25px rgba(77, 182, 172, 0.35);
+      animation: fadeIn 2.5s ease-out;
+    }
+    .btn-next:hover {
+      background: linear-gradient(135deg, #80cbc4, #4db6ac);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 35px rgba(77, 182, 172, 0.45);
+    }
+    .btn-next:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 480px) {
+      .story-line, .story-quote { font-size: 22px; }
+      .btn-next { padding: 13px 44px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="story">
+    <p class="story-line">所幸，她并没有发现你登出了她的隐藏系统，还以为自己自己手机本来就在主系统里</p>
+    <div class="story-quote">"我不小心把手机掉了......还好被你捡到了，谢谢你呀谢同学！"</div>
+  </div>
+
+  <button class="btn-next" id="nextBtn">不用谢</button>
+
+  <script>
+    document.getElementById('nextBtn').addEventListener('click', function() {
+      window.open('ending.html', '_blank');
+    });
+  </script>
+</body>
+</html>

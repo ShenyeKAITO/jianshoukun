@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>…</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #fff;
+      color: #000;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scare-text {
+      max-width: 720px;
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 2;
+      letter-spacing: 1px;
+      animation: fadeIn 2.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .btn-continue {
+      margin-top: 40px;
+      background: linear-gradient(135deg, #4db6ac, #00897b);
+      color: #fff;
+      padding: 14px 56px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 6px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 25px rgba(77, 182, 172, 0.35);
+      animation: fadeIn 2.5s ease-out;
+    }
+    .btn-continue:hover {
+      background: linear-gradient(135deg, #80cbc4, #4db6ac);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 35px rgba(77, 182, 172, 0.45);
+    }
+    .btn-continue:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 480px) {
+      .scare-text { font-size: 24px; line-height: 1.9; }
+      .btn-continue { padding: 13px 44px; font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scare-text">你的肩膀被拍了拍，吓得你把手机关上抬起了头，<br>面前正是你语文老师兼班主任......兼你的对皮。</div>
+
+  <button class="btn-continue" id="continueBtn">继 续</button>
+
+  <script>
+    document.getElementById('continueBtn').addEventListener('click', function() {
+      window.open('return_phone.html', '_blank');
+    });
+  </script>
+</body>
+</html>

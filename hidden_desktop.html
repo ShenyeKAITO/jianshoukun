@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>手机桌面</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: #1e1e2e;
+      color: #333;
+    }
+    body {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px;
+    }
+
+    .phone {
+      width: 390px; height: 780px;
+      background: #e8eaed;
+      border-radius: 40px;
+      box-shadow: 0 0 0 2px #d0d0d0, 0 0 0 4px #1e1e2e, 0 20px 60px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column;
+      position: relative; overflow: hidden;
+    }
+
+    .notch {
+      position: absolute; top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 150px; height: 28px;
+      background: #e8eaed;
+      border-radius: 0 0 18px 18px;
+      z-index: 20;
+    }
+    .notch::after {
+      content: ''; position: absolute; top: 8px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid #ccc;
+    }
+
+    .status {
+      display: flex; justify-content: space-between;
+      padding: 32px 24px 6px;
+      font-size: 12px; color: #888;
+      flex-shrink: 0;
+    }
+    .status .time { color: #555; font-weight: 600; }
+
+    /* 桌面壁纸 */
+    .wallpaper {
+      flex: 1;
+      background: #e8eaed;
+      padding: 20px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .desk-hint {
+      font-size: 13px;
+      color: #e94560;
+      font-weight: 600;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px 16px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .app-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .app-icon:hover { transform: scale(1.05); }
+    .app-icon:active { transform: scale(0.95); }
+
+    .app-icon .icon-bg {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .app-icon .label {
+      font-size: 11px;
+      color: rgba(0,0,0,0.55);
+      letter-spacing: 0.5px;
+    }
+
+    .icon-qq {
+      background: url('1.jpg') center/cover no-repeat;
+      background-size: 115%;
+    }
+    .icon-mpyq { background: url('2.jpg') center/cover no-repeat; }
+    .icon-diary { background: linear-gradient(135deg, #4db6ac, #00897b); }
+    .icon-calc { background: linear-gradient(135deg, #636e72, #2d3436); }
+
+    .home-bar {
+      position: absolute;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 4px;
+      background: rgba(0,0,0,0.06);
+      border-radius: 3px;
+    }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+      .app-grid { gap: 20px 12px; }
+    }
+
+    @media (max-width: 420px) {
+      .phone { width: 340px; height: 700px; }
+      .app-grid { gap: 20px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="notch"></div>
+
+  <div class="status">
+    <span class="time">12:15</span>
+    <span>📶 🔋</span>
+  </div>
+
+  <div class="wallpaper">
+    <div class="desk-hint">⚠️ 提示：此页面不要关闭</div>
+
+    <div class="app-grid">
+      <div class="app-icon" id="appQQ" data-app="qq">
+        <div class="icon-bg icon-qq"></div>
+        <span class="label">QQ</span>
+      </div>
+      <div class="app-icon" id="appMpyq" data-app="mpyq">
+        <div class="icon-bg icon-mpyq"></div>
+        <span class="label">名人朋友圈</span>
+      </div>
+      <div class="app-icon" id="appDiary" data-app="diary">
+        <div class="icon-bg icon-diary">📖</div>
+        <span class="label">日记</span>
+      </div>
+      <div class="app-icon" id="appCalc" data-app="calc">
+        <div class="icon-bg icon-calc">🔢</div>
+        <span class="label">计算器</span>
+      </div>
+    </div>
+
+    <div class="home-bar"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var GS;
+  try {
+    if (window.opener && window.opener.GS) GS = window.opener.GS;
+    else if (window.GS) GS = window.GS;
+  } catch(e) {}
+  if (!GS) {
+    GS = {
+      get: function(k){ try{return JSON.parse(localStorage.getItem('game2_'+k))}catch(e){return null} },
+      set: function(k,v){ localStorage.setItem('game2_'+k,JSON.stringify(v)) },
+      unlockPage: function(id){ var u=this.get('unlockedPages')||[]; if(!u.includes(id)){u.push(id);this.set('unlockedPages',u)} }
+    };
+  }
+
+  // 桌面已打开
+  GS.set('desktopped', true);
+
+  document.getElementById('appQQ').addEventListener('click', function(){
+    window.open('qq.html', '_blank');
+  });
+  document.getElementById('appMpyq').addEventListener('click', function(){
+    window.open('mpyq_login.html', '_blank');
+  });
+  document.getElementById('appDiary').addEventListener('click', function(){
+    window.open('diary.html', '_blank');
+  });
+  document.getElementById('appCalc').addEventListener('click', function(){
+    window.open('calculator.html', '_blank');
+  });
+})();
+</script>
+</body>
+</html>
