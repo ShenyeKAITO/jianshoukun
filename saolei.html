@@ -406,6 +406,9 @@
       background: #c0c0c0;
       border: none;
       user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: none;
       transition: background 0.1s;
     }
     .cell.hidden {
@@ -846,11 +849,7 @@
         el.style.gridTemplateColumns = 'repeat(' + cols + ', 30px)';
         el.style.gridTemplateRows = 'repeat(' + rows + ', 30px)';
         el.innerHTML = '';
-        let remaining = totalMines;
-        for (let r = 0; r < rows; r++)
-          for (let c = 0; c < cols; c++)
-            if (flagged[r][c]) remaining--;
-        document.getElementById('mineCounter').textContent = String(Math.max(0, remaining)).padStart(3, '0');
+        updateCounter();
 
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
@@ -876,12 +875,39 @@
                 cell.className += ' n' + board[r][c];
               }
             }
-            cell.addEventListener('click', function(e) { handleClick(parseInt(this.dataset.r), parseInt(this.dataset.c)); });
-            cell.addEventListener('contextmenu', function(e) { e.preventDefault(); handleFlag(parseInt(this.dataset.r), parseInt(this.dataset.c)); });
-            let timer;
-            cell.addEventListener('mousedown', function() { if (!gameOver) timer = setTimeout(() => handleFlag(parseInt(this.dataset.r), parseInt(this.dataset.c)), 400); });
-            cell.addEventListener('mouseup', function() { clearTimeout(timer); });
-            cell.addEventListener('mouseleave', function() { clearTimeout(timer); });
+            // 单击揭开（若刚由长按插过旗，则跳过本次 click）
+            cell.addEventListener('click', function(e) {
+              if (this.dataset.lp === '1') { this.dataset.lp = '0'; return; }
+              handleClick(parseInt(this.dataset.r), parseInt(this.dataset.c));
+            });
+            // 右键插旗
+            cell.addEventListener('contextmenu', function(e) {
+              e.preventDefault();
+              if (this.dataset.lp === '1') { this.dataset.lp = '0'; return; }
+              handleFlag(parseInt(this.dataset.r), parseInt(this.dataset.c));
+            });
+            // 长按插旗：鼠标左键长按 或 手机触摸长按（Pointer Events 统一处理）
+            let lpTimer = null;
+            let lpStartX = 0, lpStartY = 0;
+            cell.addEventListener('pointerdown', function(e) {
+              if (gameOver) return;
+              if (e.pointerType === 'mouse' && e.button !== 0) return; // 右键交给 contextmenu
+              var self = this;
+              lpStartX = e.clientX; lpStartY = e.clientY;
+              lpTimer = setTimeout(function(){
+                handleFlag(parseInt(self.dataset.r), parseInt(self.dataset.c));
+                self.dataset.lp = '1'; // 标记：本次长按产生过插旗，抑制后续 click/contextmenu
+              }, 400);
+            });
+            cell.addEventListener('pointermove', function(e) {
+              if (!lpTimer) return;
+              if (Math.abs(e.clientX - lpStartX) > 10 || Math.abs(e.clientY - lpStartY) > 10) {
+                clearTimeout(lpTimer); lpTimer = null;
+              }
+            });
+            cell.addEventListener('pointerup', function() { clearTimeout(lpTimer); lpTimer = null; });
+            cell.addEventListener('pointercancel', function() { clearTimeout(lpTimer); lpTimer = null; });
+            cell.addEventListener('pointerleave', function() { clearTimeout(lpTimer); lpTimer = null; });
             el.appendChild(cell);
           }
         }
@@ -901,7 +927,40 @@
       function handleFlag(r, c) {
         if (gameOver || revealed[r][c]) return;
         flagged[r][c] = !flagged[r][c];
-        render();
+        // 局部更新当前格子 + 雷数计数器，不整板重绘（避免打断长按/点击的后续事件）
+        updateCell(r, c);
+        updateCounter();
+      }
+
+      function updateCounter() {
+        let remaining = totalMines;
+        for (let r = 0; r < rows; r++)
+          for (let c = 0; c < cols; c++)
+            if (flagged[r][c]) remaining--;
+        document.getElementById('mineCounter').textContent = String(Math.max(0, remaining)).padStart(3, '0');
+      }
+
+      function updateCell(r, c) {
+        const cell = document.querySelector('.board [data-r="' + r + '"][data-c="' + c + '"]');
+        if (!cell) return;
+        var scClass = '';
+        if (currentMode === 'secret') scClass = ' sc' + ((Math.floor(r/2) + Math.floor(c/2)) % 2);
+        if (flagged[r][c]) {
+          cell.className = 'cell flagged' + scClass;
+          cell.textContent = '🚩';
+        } else if (revealed[r][c]) {
+          cell.className = 'cell revealed' + scClass;
+          if (board[r][c] === -1) {
+            cell.className = 'cell mine' + scClass;
+            cell.textContent = '💣';
+          } else if (board[r][c] > 0) {
+            cell.className += ' n' + board[r][c];
+            cell.textContent = board[r][c];
+          }
+        } else {
+          cell.className = 'cell hidden' + scClass;
+          cell.textContent = '';
+        }
       }
 
       function reveal(r, c) {
