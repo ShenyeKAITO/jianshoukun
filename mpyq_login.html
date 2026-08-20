@@ -260,8 +260,8 @@
         try { localStorage.setItem('game2_qqid', v); } catch(e) {}
         // 登录后默认角色为 曜（重置角色索引）
         try { localStorage.setItem('game2_mpyq_role', '0'); } catch(e) {}
-        window.open('mingren.html', '_blank');
-        window.close();
+        // 直接用本窗口跳转，避免部分浏览器下 open+close 产生白屏
+        location.href = 'mingren.html';
       }
 
       btn.addEventListener('click', doLogin);
